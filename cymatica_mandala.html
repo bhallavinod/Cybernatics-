@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CymaticaMandala</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Raleway:wght@300;400;500&display=swap');
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --deep: #050810;
+    --panel-bg: rgba(10, 14, 30, 0.92);
+    --border: rgba(201, 168, 76, 0.3);
+    --laser-blue: #00aaff;
+    --laser-glow: #0066cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: #fff;
+    font-family: 'Raleway', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(30, 10, 60, 0.4) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(10, 30, 80, 0.3) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 80px 0;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 18px 16px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.08em;
+  }
+
+  .app-subtitle {
+    font-size: 0.62rem;
+    color: rgba(201, 168, 76, 0.6);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  /* Status bar */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(201, 168, 76, 0.05);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .mantra-display {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--gold-light);
+    min-width: 60px;
+  }
+
+  .freq-display {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+  }
+
+  .freq-display span {
+    display: block;
+    font-size: 1rem;
+    color: var(--laser-blue);
+    font-weight: 500;
+  }
+
+  .purity-container {
+    text-align: right;
+  }
+
+  .purity-label {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .purity-bar {
+    width: 70px;
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 3px;
+  }
+
+  .purity-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* Canvas panels */
+  .panels {
+    display: flex;
+    gap: 6px;
+    padding: 10px 8px 6px;
+  }
+
+  .panel-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .panel-label {
+    font-size: 0.58rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    text-align: center;
+    padding: 3px 0;
+    border-radius: 3px;
+  }
+
+  .panel-label.sand-label {
+    color: #ff9944;
+    background: rgba(255, 153, 68, 0.08);
+    border: 1px solid rgba(255, 153, 68, 0.2);
+  }
+
+  .panel-label.laser-label {
+    color: var(--laser-blue);
+    background: rgba(0, 170, 255, 0.08);
+    border: 1px solid rgba(0, 170, 255, 0.2);
+  }
+
+  canvas {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #000;
+    display: block;
+  }
+
+  /* Correlation bar */
+  .correlation {
+    margin: 0 8px 6px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .corr-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255,255,255,0.4);
+    white-space: nowrap;
+  }
+
+  .corr-bar {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .corr-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--laser-blue), var(--gold));
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+
+  .corr-score {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gold-light);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  .match-name {
+    font-size: 0.6rem;
+    color: rgba(201, 168, 76, 0.7);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+  }
+
+  /* Mic button */
+  .mic-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 0 6px;
+    gap: 20px;
+  }
+
+  .mic-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    background: radial-gradient(circle, rgba(201,168,76,0.15) 0%, rgba(201,168,76,0.03) 70%);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mic-btn.active {
+    border-color: #ff4444;
+    background: radial-gradient(circle, rgba(255,68,68,0.2) 0%, rgba(255,68,68,0.05) 70%);
+    box-shadow: 0 0 20px rgba(255,68,68,0.3);
+    animation: pulse-mic 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-mic {
+    0%, 100% { box-shadow: 0 0 20px rgba(255,68,68,0.3); }
+    50% { box-shadow: 0 0 35px rgba(255,68,68,0.6); }
+  }
+
+  .mic-icon {
+    font-size: 28px;
+  }
+
+  .mic-ring {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.2);
+    animation: ring-expand 2s ease-out infinite;
+    opacity: 0;
+  }
+
+  .mic-btn.active .mic-ring {
+    border-color: rgba(255,68,68,0.3);
+    animation: ring-expand 1.2s ease-out infinite;
+  }
+
+  @keyframes ring-expand {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .mic-hint {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    flex: 1;
+    min-width: 70px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    border: 1px solid;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .btn-icon { font-size: 16px; }
+
+  .btn-save {
+    background: rgba(201,168,76,0.1);
+    border-color: rgba(201,168,76,0.4);
+    color: var(--gold-light);
+  }
+  .btn-save:active { background: rgba(201,168,76,0.25); }
+
+  .btn-view {
+    background: rgba(0,170,255,0.08);
+    border-color: rgba(0,170,255,0.3);
+    color: var(--laser-blue);
+  }
+  .btn-view:active { background: rgba(0,170,255,0.2); }
+
+  .btn-pdf {
+    background: rgba(100,200,100,0.08);
+    border-color: rgba(100,200,100,0.3);
+    color: #88dd88;
+  }
+  .btn-pdf:active { background: rgba(100,200,100,0.2); }
+
+  .btn-new {
+    background: rgba(255,100,100,0.08);
+    border-color: rgba(255,100,100,0.3);
+    color: #ff8888;
+  }
+  .btn-new:active { background: rgba(255,100,100,0.2); }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .modal-overlay.open { display: flex; flex-direction: column; }
+
+  .modal {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 460px;
+    width: 100%;
+    margin: auto;
+  }
+
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold-light);
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.4);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+
+  /* Saved sessions list */
+  .sessions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 65vh;
+    overflow-y: auto;
+  }
+
+  .session-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .session-card:active { background: rgba(201,168,76,0.1); }
+
+  .session-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  .session-mantra {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold-light);
+  }
+
+  .session-date {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .session-meta {
+    display: flex;
+    gap: 12px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .session-meta span { color: var(--laser-blue); }
+
+  .session-thumb {
+    width: 100%;
+    border-radius: 6px;
+    margin-top: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .no-sessions {
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.85rem;
+  }
+
+  /* Save dialog */
+  .save-form { display: flex; flex-direction: column; gap: 12px; }
+
+  .form-label {
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .form-input {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #fff;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  .form-input:focus { border-color: var(--gold); }
+
+  .btn-confirm {
+    background: linear-gradient(135deg, rgba(201,168,76,0.3), rgba(201,168,76,0.15));
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+  }
+
+  .btn-confirm:active { background: rgba(201,168,76,0.4); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(10,14,30,0.95);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-size: 0.75rem;
+    color: var(--gold-light);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 200;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Frequency waveform */
+  .waveform-bar {
+    height: 30px;
+    margin: 0 8px 6px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+  }
+
+  #waveformCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="app-title">CymaticaMandala</div>
+    <div class="app-subtitle">Sound · Geometry · Healing</div>
+  </header>
+
+  <div class="status-bar">
+    <div>
+      <div class="mantra-display" id="mantraDisplay">—</div>
+      <div style="font-size:0.58rem;color:rgba(255,255,255,0.3);margin-top:1px" id="mantraName">Waiting...</div>
+    </div>
+    <div class="freq-display">
+      <span id="freqDisplay">— Hz</span>
+      Frequency
+    </div>
+    <div class="purity-container">
+      <div class="purity-label">Purity</div>
+      <div class="purity-bar"><div class="purity-fill" id="purityFill"></div></div>
+      <div style="font-size:0.65rem;color:var(--gold-light);text-align:right;margin-top:2px" id="purityScore">0%</div>
+    </div>
+  </div>
+
+  <div class="waveform-bar">
+    <canvas id="waveformCanvas"></canvas>
+  </div>
+
+  <div class="panels">
+    <div class="panel-wrap">
+      <div class="panel-label sand-label">⬡ Sand Cymatics</div>
+      <canvas id="sandCanvas"></canvas>
+    </div>
+    <div class="panel-wrap">
+      <div class="panel-label laser-label">◈ Laser Pattern</div>
+      <canvas id="laserCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="correlation">
+    <div class="corr-label">Match</div>
+    <div class="corr-bar"><div class="corr-fill" id="corrFill"></div></div>
+    <div>
+      <div class="corr-score" id="corrScore">0%</div>
+      <div class="match-name" id="matchName">—</div>
+    </div>
+  </div>
+
+  <div class="mic-section">
+    <div style="text-align:center">
+      <div class="mic-btn" id="micBtn" onclick="toggleMic()">
+        <div class="mic-ring"></div>
+        <div class="mic-icon" id="micIcon">🎙️</div>
+      </div>
+      <div class="mic-hint" id="micHint">Tap to start</div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-save" onclick="openSaveDialog()">
+      <span class="btn-icon">💾</span>Save
+    </button>
+    <button class="btn btn-view" onclick="openSessions()">
+      <span class="btn-icon">📂</span>Saved
+    </button>
+    <button class="btn btn-pdf" onclick="savePDF()">
+      <span class="btn-icon">📄</span>PDF
+    </button>
+    <button class="btn btn-new" onclick="resetSession()">
+      <span class="btn-icon">✨</span>New
+    </button>
+  </div>
+</div>
+
+<!-- Save Dialog -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">
+      Save Session
+      <button class="close-btn" onclick="closeModal('saveModal')">✕</button>
+    </div>
+    <div class="save-form">
+      <div>
+        <div class="form-label">Session Name</div>
+        <input class="form-input" id="sessionName" placeholder="e.g. Morning OM chant" />
+      </div>
+      <div>
+        <div class="form-label">Notes (optional)</div>
+        <input class="form-input" id="sessionNotes" placeholder="How did you feel?" />
+      </div>
+      <button class="btn-confirm" onclick="confirmSave()">✦ Save to Library</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sessions Library -->
+<div class="modal-overlay" id="sessionsModal">
+  <div class="modal">
+    <div class="modal-title">
+      Saved Sessions
+      <button class="close-btn" onclick="closeModal('sessionsModal')">✕</button>
+    </div>
+    <div class="sessions-list" id="sessionsList"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── State ───────────────────────────────────────────────
+let audioCtx = null, analyser = null, stream = null;
+let isListening = false;
+let animFrame = null;
+let sandParticles = [];
+let laserPhase = 0;
+let currentFreq = 0;
+let currentMantra = '—';
+let currentPurity = 0;
+let currentCorr = 0;
+let currentMatch = '—';
+let sessionActive = false;
+
+// Canvas refs
+const sandCanvas = document.getElementById('sandCanvas');
+const laserCanvas = document.getElementById('laserCanvas');
+const waveCanvas = document.getElementById('waveformCanvas');
+const sandCtx = sandCanvas.getContext('2d');
+const laserCtx = laserCanvas.getContext('2d');
+const waveCtx = waveCanvas.getContext('2d');
+
+// ─── Mandala Library ─────────────────────────────────────
+const LIBRARY = [
+  { name: 'Sri Yantra',     mantra: 'OM',  freq: 136,  sym: 9,  color: '#gold'  },
+  { name: 'Muladhara',      mantra: 'LAM', freq: 256,  sym: 4,  color: '#ff4444' },
+  { name: 'Svadhisthana',   mantra: 'VAM', freq: 288,  sym: 6,  color: '#ff8800' },
+  { name: 'Manipura',       mantra: 'RAM', freq: 528,  sym: 10, color: '#ffdd00' },
+  { name: 'Anahata',        mantra: 'YAM', freq: 594,  sym: 12, color: '#44dd44' },
+  { name: 'Vishuddha',      mantra: 'HAM', freq: 672,  sym: 16, color: '#00aaff' },
+  { name: 'Ajna',           mantra: 'OM',  freq: 852,  sym: 2,  color: '#8844ff' },
+  { name: 'Sahasrara',      mantra: 'AH',  freq: 963,  sym: 24, color: '#ffffff' },
+];
+
+// ─── Canvas Sizing ───────────────────────────────────────
+function resizeCanvases() {
+  const panels = document.querySelectorAll('.panels .panel-wrap');
+  const pw = panels[0]?.offsetWidth || 160;
+  const size = Math.min(pw, 220);
+
+  [sandCanvas, laserCanvas].forEach(c => {
+    c.width = size;
+    c.height = size;
+    c.style.width = pw + 'px';
+    c.style.height = pw + 'px';
+  });
+
+  const wb = document.querySelector('.waveform-bar');
+  waveCanvas.width = wb.offsetWidth;
+  waveCanvas.height = wb.offsetHeight;
+}
+
+window.addEventListener('resize', resizeCanvases);
+resizeCanvases();
+
+// ─── Particle System ─────────────────────────────────────
+function initParticles(count = 1200) {
+  const cx = sandCanvas.width / 2;
+  const cy = sandCanvas.height / 2;
+  const r = cx * 0.9;
+  sandParticles = Array.from({length: count}, () => {
+    const a = Math.random() * Math.PI * 2;
+    const d = Math.sqrt(Math.random()) * r;
+    return {
+      x: cx + Math.cos(a) * d,
+      y: cy + Math.sin(a) * d,
+      vx: 0, vy: 0,
+      baseX: cx + Math.cos(a) * d,
+      baseY: cy + Math.sin(a) * d,
+      hue: Math.random() * 60 + 20,
+      size: Math.random() * 1.4 + 0.4
+    };
+  });
+}
+
+initParticles();
+
+// ─── Chladni / Standing Wave ─────────────────────────────
+function chladniForce(x, y, freq, w, h, time) {
+  const nx = (x / w) * Math.PI * 2;
+  const ny = (y / h) * Math.PI * 2;
+  const m = Math.max(1, Math.round(freq / 180));
+  const n = Math.max(1, Math.round(freq / 220));
+  const z = Math.cos(m * nx) * Math.cos(n * ny)
+           + 0.3 * Math.cos((m+1) * nx) * Math.sin((n+1) * ny + time * 0.5);
+  const dzdx = -m * Math.sin(m * nx) * Math.cos(n * ny) * (Math.PI * 2 / w);
+  const dzdy = -n * Math.cos(m * nx) * Math.sin(n * ny) * (Math.PI * 2 / h);
+  return { z, dzdx, dzdy };
+}
+
+// ─── Draw Sand ───────────────────────────────────────────
+function drawSand(freq, amplitude, time) {
+  const w = sandCanvas.width;
+  const h = sandCanvas.height;
+  const cx = w / 2, cy = h / 2;
+
+  sandCtx.fillStyle = 'rgba(0,0,0,0.18)';
+  sandCtx.fillRect(0, 0, w, h);
+
+  // Draw subtle circular boundary
+  sandCtx.beginPath();
+  sandCtx.arc(cx, cy, cx * 0.92, 0, Math.PI * 2);
+  sandCtx.strokeStyle = 'rgba(201,168,76,0.08)';
+  sandCtx.lineWidth = 1;
+  sandCtx.stroke();
+
+  if (amplitude < 0.01) {
+    // Idle — scatter particles gently
+    sandParticles.forEach(p => {
+      p.vx += (Math.random() - 0.5) * 0.3;
+      p.vy += (Math.random() - 0.5) * 0.3;
+      p.vx *= 0.92; p.vy *= 0.92;
+      p.x += p.vx; p.y += p.vy;
+
+      const dx = p.x - cx, dy = p.y - cy;
+      if (dx * dx + dy * dy > cx * cx * 0.85) {
+        p.x = cx + (Math.random() - 0.5) * cx * 1.4;
+        p.y = cy + (Math.random() - 0.5) * cy * 1.4;
+        p.vx = 0; p.vy = 0;
+      }
+
+      sandCtx.beginPath();
+      sandCtx.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2);
+      sandCtx.fillStyle = `hsla(${p.hue},40%,55%,0.3)`;
+      sandCtx.fill();
+    });
+    return;
+  }
+
+  sandParticles.forEach(p => {
+    const f = chladniForce(p.x, p.y, freq, w, h, time);
+    const strength = amplitude * 2.5;
+
+    // Move toward nodes (where z ≈ 0)
+    const nodePull = Math.abs(f.z);
+    p.vx += -f.dzdx * nodePull * strength * 3;
+    p.vy += -f.dzdy * nodePull * strength * 3;
+
+    // Damping
+    p.vx *= 0.88; p.vy *= 0.88;
+    p.x += p.vx; p.y += p.vy;
+
+    // Boundary — keep in circle
+    const dx = p.x - cx, dy = p.y - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > cx * 0.91) {
+      const angle = Math.atan2(dy, dx);
+      p.x = cx + Math.cos(angle) * cx * 0.89;
+      p.y = cy + Math.sin(angle) * cx * 0.89;
+      p.vx *= -0.3; p.vy *= -0.3;
+    }
+
+    // Color based on nodal position
+    const nodeVal = 1 - Math.min(1, Math.abs(f.z) * 2);
+    const hue = 20 + nodeVal * 50 + (freq / 20);
+    const sat = 60 + nodeVal * 30;
+    const lit = 45 + nodeVal * 35;
+    const alpha = 0.4 + nodeVal * 0.5;
+
+    sandCtx.beginPath();
+    sandCtx.arc(p.x, p.y, p.size * (0.8 + nodeVal * 0.6), 0, Math.PI * 2);
+    sandCtx.fillStyle = `hsla(${hue},${sat}%,${lit}%,${alpha})`;
+    sandCtx.fill();
+  });
+
+  // Glow bloom on high purity
+  if (amplitude > 0.4) {
+    const grad = sandCtx.createRadialGradient(cx, cy, 0, cx, cy, cx);
+    grad.addColorStop(0, `rgba(255,200,80,${amplitude * 0.06})`);
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    sandCtx.fillStyle = grad;
+    sandCtx.fillRect(0, 0, w, h);
+  }
+}
+
+// ─── Draw Laser Lissajous ─────────────────────────────────
+function drawLaser(freq, amplitude, time) {
+  const w = laserCanvas.width;
+  const h = laserCanvas.height;
+  const cx = w / 2, cy = h / 2;
+
+  laserCtx.fillStyle = 'rgba(0,0,0,0.2)';
+  laserCtx.fillRect(0, 0, w, h);
+
+  if (amplitude < 0.005) {
+    // Idle dot
+    laserCtx.beginPath();
+    laserCtx.arc(cx, cy, 2, 0, Math.PI * 2);
+    laserCtx.fillStyle = 'rgba(0,170,255,0.3)';
+    laserCtx.fill();
+    return;
+  }
+
+  // Frequency ratios for Lissajous
+  const baseA = Math.max(1, Math.round(freq / 200));
+  const baseB = Math.max(1, Math.round(freq / 180));
+  const a = baseA;
+  const b = baseB;
+  const delta = time * 0.008 + (freq / 500) * Math.PI;
+
+  const radius = Math.min(cx, cy) * 0.82;
+  const steps = 1800;
+
+  // Outer glow pass
+  laserCtx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * Math.PI * 2 * Math.max(a, b);
+    const x = cx + radius * Math.sin(a * t + delta);
+    const y = cy + radius * Math.sin(b * t);
+    i === 0 ? laserCtx.moveTo(x, y) : laserCtx.lineTo(x, y);
+  }
+  laserCtx.strokeStyle = `rgba(0,120,255,${amplitude * 0.15})`;
+  laserCtx.lineWidth = 5;
+  laserCtx.stroke();
+
+  // Mid pass
+  laserCtx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * Math.PI * 2 * Math.max(a, b);
+    const x = cx + radius * Math.sin(a * t + delta);
+    const y = cy + radius * Math.sin(b * t);
+    i === 0 ? laserCtx.moveTo(x, y) : laserCtx.lineTo(x, y);
+  }
+  laserCtx.strokeStyle = `rgba(0,160,255,${amplitude * 0.5})`;
+  laserCtx.lineWidth = 2;
+  laserCtx.stroke();
+
+  // Core bright line
+  laserCtx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * Math.PI * 2 * Math.max(a, b);
+    const x = cx + radius * Math.sin(a * t + delta);
+    const y = cy + radius * Math.sin(b * t);
+    i === 0 ? laserCtx.moveTo(x, y) : laserCtx.lineTo(x, y);
+  }
+  laserCtx.strokeStyle = `rgba(180,230,255,${Math.min(1, amplitude * 1.5)})`;
+  laserCtx.lineWidth = 0.8;
+  laserCtx.stroke();
+
+  // Center dot
+  laserCtx.beginPath();
+  laserCtx.arc(cx, cy, 2, 0, Math.PI * 2);
+  laserCtx.fillStyle = `rgba(255,255,255,${amplitude})`;
+  laserCtx.fill();
+
+  // Reflection dots along pattern for sparkle
+  if (amplitude > 0.3) {
+    for (let i = 0; i < 8; i++) {
+      const t = ((i / 8) + time * 0.001) * Math.PI * 2 * Math.max(a, b);
+      const x = cx + radius * Math.sin(a * t + delta);
+      const y = cy + radius * Math.sin(b * t);
+      laserCtx.beginPath();
+      laserCtx.arc(x, y, 1.5, 0, Math.PI * 2);
+      laserCtx.fillStyle = 'rgba(255,255,255,0.8)';
+      laserCtx.fill();
+    }
+  }
+}
+
+// ─── Waveform ─────────────────────────────────────────────
+function drawWaveform(dataArray) {
+  const w = waveCanvas.width;
+  const h = waveCanvas.height;
+  waveCtx.clearRect(0, 0, w, h);
+
+  if (!dataArray) return;
+
+  waveCtx.beginPath();
+  const step = Math.ceil(dataArray.length / w);
+  for (let i = 0; i < w; i++) {
+    const val = dataArray[i * step] / 128.0;
+    const y = (val * h) / 2;
+    i === 0 ? waveCtx.moveTo(i, h / 2 + y - h / 2) : waveCtx.lineTo(i, h / 2 + y - h / 2);
+  }
+  waveCtx.strokeStyle = 'rgba(201,168,76,0.6)';
+  waveCtx.lineWidth = 1;
+  waveCtx.stroke();
+}
+
+// ─── Frequency Detection ──────────────────────────────────
+function detectFrequency(freqData, sampleRate, bufferLen) {
+  let maxVal = -Infinity, maxIdx = 0;
+  for (let i = 2; i < bufferLen / 2; i++) {
+    if (freqData[i] > maxVal) { maxVal = freqData[i]; maxIdx = i; }
+  }
+  return (maxIdx * sampleRate) / (bufferLen * 2);
+}
+
+function detectMantra(freq) {
+  const mantras = [
+    { name: 'OM',  range: [80, 200],   sym: 'ॐ', label: 'Sri Yantra' },
+    { name: 'LAM', range: [200, 320],  sym: 'लं', label: 'Muladhara' },
+    { name: 'VAM', range: [260, 350],  sym: 'वं', label: 'Svadhisthana' },
+    { name: 'RAM', range: [400, 650],  sym: 'रं', label: 'Manipura' },
+    { name: 'YAM', range: [530, 680],  sym: 'यं', label: 'Anahata' },
+    { name: 'HAM', range: [620, 760],  sym: 'हं', label: 'Vishuddha' },
+    { name: 'AH',  range: [800, 1100], sym: 'अः', label: 'Sahasrara' },
+  ];
+  for (const m of mantras) {
+    if (freq >= m.range[0] && freq < m.range[1]) return m;
+  }
+  return { name: '~', sym: '~', label: 'Listening...' };
+}
+
+// ─── Correlation Score ────────────────────────────────────
+function computeCorrelation(freq, amplitude) {
+  if (amplitude < 0.02) return { score: 0, name: '—' };
+  let best = 0, bestName = '—';
+  LIBRARY.forEach(m => {
+    const diff = Math.abs(freq - m.freq);
+    const score = Math.max(0, 1 - diff / 300) * amplitude * 1.5;
+    if (score > best) { best = score; bestName = m.name; }
+  });
+  return { score: Math.min(100, Math.round(best * 100)), name: bestName };
+}
+
+// ─── Main Animation Loop ─────────────────────────────────
+let frameCount = 0;
+let smoothAmp = 0;
+let smoothFreq = 100;
+let timeAcc = 0;
+
+function animate() {
+  animFrame = requestAnimationFrame(animate);
+  frameCount++;
+  timeAcc += 0.016;
+
+  if (isListening && analyser) {
+    const bufLen = analyser.frequencyBinCount;
+    const freqData = new Uint8Array(bufLen);
+    const timeData = new Uint8Array(analyser.fftSize);
+    analyser.getByteFrequencyData(freqData);
+    analyser.getByteTimeDomainData(timeData);
+
+    // Amplitude
+    let sum = 0;
+    freqData.forEach(v => sum += v);
+    const rawAmp = (sum / (bufLen * 255)) * 4;
+    smoothAmp += (rawAmp - smoothAmp) * 0.12;
+
+    // Frequency
+    const rawFreq = detectFrequency(freqData, audioCtx.sampleRate, bufLen);
+    if (rawFreq > 50 && rawFreq < 2000 && smoothAmp > 0.02) {
+      smoothFreq += (rawFreq - smoothFreq) * 0.08;
+    }
+
+    currentFreq = Math.round(smoothFreq);
+    currentPurity = Math.min(100, Math.round(smoothAmp * 120));
+
+    const mantraInfo = detectMantra(smoothFreq);
+    currentMantra = mantraInfo.sym;
+    document.getElementById('mantraDisplay').textContent = mantraInfo.sym;
+    document.getElementById('mantraName').textContent = mantraInfo.label;
+
+    const corr = computeCorrelation(smoothFreq, smoothAmp);
+    currentCorr = corr.score;
+    currentMatch = corr.name;
+
+    // Update UI
+    document.getElementById('freqDisplay').textContent = currentFreq + ' Hz';
+    document.getElementById('purityFill').style.width = currentPurity + '%';
+    document.getElementById('purityScore').textContent = currentPurity + '%';
+    document.getElementById('corrFill').style.width = currentCorr + '%';
+    document.getElementById('corrScore').textContent = currentCorr + '%';
+    document.getElementById('matchName').textContent = currentMatch;
+
+    drawWaveform(timeData);
+    drawSand(smoothFreq, smoothAmp, timeAcc);
+    drawLaser(smoothFreq, smoothAmp, timeAcc);
+  } else {
+    // Idle animation
+    smoothAmp *= 0.97;
+    drawSand(100 + Math.sin(timeAcc * 0.3) * 30, smoothAmp * 0.1, timeAcc);
+    drawLaser(100 + Math.sin(timeAcc * 0.2) * 50, 0.12 + Math.sin(timeAcc) * 0.05, timeAcc);
+  }
+}
+
+animate();
+
+// ─── Mic Control ─────────────────────────────────────────
+async function toggleMic() {
+  if (isListening) {
+    stopMic();
+  } else {
+    await startMic();
+  }
+}
+
+async function startMic() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 4096;
+    analyser.smoothingTimeConstant = 0.8;
+    const src = audioCtx.createMediaStreamSource(stream);
+    src.connect(analyser);
+    isListening = true;
+    sessionActive = true;
+    document.getElementById('micBtn').classList.add('active');
+    document.getElementById('micIcon').textContent = '🔴';
+    document.getElementById('micHint').textContent = 'Chant your mantra...';
+    showToast('🎙️ Listening — chant OM or any mantra');
+  } catch (e) {
+    showToast('⚠️ Microphone access needed');
+  }
+}
+
+function stopMic() {
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  if (audioCtx) audioCtx.close();
+  stream = null; audioCtx = null; analyser = null;
+  isListening = false;
+  document.getElementById('micBtn').classList.remove('active');
+  document.getElementById('micIcon').textContent = '🎙️';
+  document.getElementById('micHint').textContent = 'Tap to start';
+  smoothAmp = 0;
+}
+
+// ─── Save / Load Sessions ─────────────────────────────────
+function openSaveDialog() {
+  if (!sessionActive) { showToast('Start a session first'); return; }
+  document.getElementById('sessionName').value = currentMantra !== '—' ? currentMantra + ' session' : '';
+  document.getElementById('sessionNotes').value = '';
+  document.getElementById('saveModal').classList.add('open');
+}
+
+function confirmSave() {
+  const name = document.getElementById('sessionName').value || 'Untitled';
+  const notes = document.getElementById('sessionNotes').value;
+
+  // Capture both canvases
+  const sandData = sandCanvas.toDataURL('image/png');
+  const laserData = laserCanvas.toDataURL('image/png');
+
+  const session = {
+    id: Date.now(),
+    name,
+    notes,
+    mantra: currentMantra,
+    freq: currentFreq,
+    purity: currentPurity,
+    corr: currentCorr,
+    match: currentMatch,
+    sandImg: sandData,
+    laserImg: laserData,
+    timestamp: new Date().toLocaleString()
+  };
+
+  const saved = getSessions();
+  saved.unshift(session);
+  localStorage.setItem('cymatica_sessions', JSON.stringify(saved.slice(0, 50)));
+
+  closeModal('saveModal');
+  showToast('✦ Session saved to library');
+}
+
+function getSessions() {
+  try { return JSON.parse(localStorage.getItem('cymatica_sessions') || '[]'); }
+  catch { return []; }
+}
+
+function openSessions() {
+  const sessions = getSessions();
+  const list = document.getElementById('sessionsList');
+
+  if (sessions.length === 0) {
+    list.innerHTML = '<div class="no-sessions">✦<br><br>No sessions saved yet.<br>Start chanting to create your first mandala.</div>';
+  } else {
+    list.innerHTML = sessions.map(s => `
+      <div class="session-card">
+        <div class="session-card-top">
+          <div class="session-mantra">${s.mantra || '~'} — ${s.name}</div>
+          <div class="session-date">${s.timestamp}</div>
+        </div>
+        <div class="session-meta">
+          <div>Freq: <span>${s.freq} Hz</span></div>
+          <div>Purity: <span>${s.purity}%</span></div>
+          <div>Match: <span>${s.match}</span></div>
+        </div>
+        ${s.notes ? `<div style="font-size:0.65rem;color:rgba(255,255,255,0.4);margin-top:6px;font-style:italic">"${s.notes}"</div>` : ''}
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <img src="${s.sandImg}" class="session-thumb" style="flex:1" />
+          <img src="${s.laserImg}" class="session-thumb" style="flex:1" />
+        </div>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('sessionsModal').classList.add('open');
+}
+
+// ─── PDF Export ───────────────────────────────────────────
+function savePDF() {
+  const sandData = sandCanvas.toDataURL('image/png');
+  const laserData = laserCanvas.toDataURL('image/png');
+  const ts = new Date().toLocaleString();
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CymaticaMandala — Session Report</title>
+<style>
+  body { font-family: Georgia, serif; background: #050810; color: #fff;
+         margin: 0; padding: 30px; min-height: 100vh; }
+  .header { text-align: center; border-bottom: 1px solid #c9a84c; padding-bottom: 20px; margin-bottom: 30px; }
+  h1 { font-size: 2rem; color: #f0d080; letter-spacing: 0.1em; margin: 0; }
+  .sub { font-size: 0.75rem; color: rgba(201,168,76,0.6); letter-spacing: 0.25em;
+         text-transform: uppercase; margin-top: 6px; }
+  .meta { display: flex; justify-content: space-around; margin-bottom: 30px;
+          background: rgba(201,168,76,0.07); border-radius: 10px; padding: 16px; }
+  .meta-item { text-align: center; }
+  .meta-val { font-size: 1.5rem; color: #f0d080; }
+  .meta-label { font-size: 0.65rem; color: rgba(255,255,255,0.4); text-transform: uppercase;
+                letter-spacing: 0.1em; margin-top: 4px; }
+  .panels { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+  .panel { text-align: center; }
+  .panel-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em;
+                  margin-bottom: 8px; }
+  .sand-title { color: #ff9944; }
+  .laser-title { color: #00aaff; }
+  img { width: 220px; height: 220px; border-radius: 10px;
+        border: 1px solid rgba(201,168,76,0.3); display: block; }
+  .footer { text-align: center; font-size: 0.65rem; color: rgba(255,255,255,0.2);
+            border-top: 1px solid rgba(201,168,76,0.2); padding-top: 16px; margin-top: 20px; }
+  @media print {
+    body { background: #050810 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>CymaticaMandala</h1>
+  <div class="sub">Sound · Geometry · Healing — Session Report</div>
+</div>
+<div class="meta">
+  <div class="meta-item"><div class="meta-val">${currentMantra}</div><div class="meta-label">Mantra</div></div>
+  <div class="meta-item"><div class="meta-val">${currentFreq} Hz</div><div class="meta-label">Frequency</div></div>
+  <div class="meta-item"><div class="meta-val">${currentPurity}%</div><div class="meta-label">Purity</div></div>
+  <div class="meta-item"><div class="meta-val">${currentCorr}%</div><div class="meta-label">Match</div></div>
+</div>
+<div class="panels">
+  <div class="panel">
+    <div class="panel-title sand-title">⬡ Sand Cymatics</div>
+    <img src="${sandData}" />
+  </div>
+  <div class="panel">
+    <div class="panel-title laser-title">◈ Laser Pattern</div>
+    <img src="${laserData}" />
+  </div>
+</div>
+<div style="text-align:center;color:rgba(201,168,76,0.7);font-size:0.8rem;margin-bottom:8px">
+  Historical Match: <strong style="color:#f0d080">${currentMatch}</strong>
+</div>
+<div class="footer">
+  Generated: ${ts} · CymaticaMandala — Cybernetics of Sound<br>
+  This session is part of the global sound healing research corpus.
+</div>
+<script>window.onload=()=>{window.print()}<\/script>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) showToast('Allow popups to save PDF');
+  else showToast('📄 PDF ready — use Print → Save as PDF');
+}
+
+// ─── Reset ────────────────────────────────────────────────
+function resetSession() {
+  stopMic();
+  sessionActive = false;
+  currentFreq = 0; currentPurity = 0; currentCorr = 0;
+  currentMantra = '—'; currentMatch = '—';
+  smoothAmp = 0; smoothFreq = 100; timeAcc = 0;
+
+  document.getElementById('mantraDisplay').textContent = '—';
+  document.getElementById('mantraName').textContent = 'Waiting...';
+  document.getElementById('freqDisplay').textContent = '— Hz';
+  document.getElementById('purityFill').style.width = '0%';
+  document.getElementById('purityScore').textContent = '0%';
+  document.getElementById('corrFill').style.width = '0%';
+  document.getElementById('corrScore').textContent = '0%';
+  document.getElementById('matchName').textContent = '—';
+
+  initParticles();
+  showToast('✨ Ready for new session');
+}
+
+// ─── Utilities ────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target === el) el.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
