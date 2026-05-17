@@ -1,8 +1,8 @@
 const CACHE = 'cymatica-v1';
 const ASSETS = [
   '/',
-  '/index.html',
-  '/manifest.json'
+  /index.html',
+  /manifest.json'
 ];
 
 // Install — cache all assets
