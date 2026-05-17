@@ -35,7 +35,24 @@ header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--bor
 .panel-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.2em;text-align:center;padding:3px 0;border-radius:3px;margin:7px 6px 3px}
 .sand-label{color:#ff9944;background:rgba(255,153,68,.07);border:1px solid rgba(255,153,68,.2)}
 .laser-label{color:var(--blue);background:rgba(0,170,255,.07);border:1px solid rgba(0,170,255,.2)}
-#sandCanvas,#laserCanvas{display:block;margin:0 6px;border-radius:8px;border:1px solid var(--border);background:#000}
+/* ── Mode toggle ── */
+.mode-toggle{display:flex;gap:0;margin:8px 8px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.mode-btn{flex:1;padding:8px 6px;background:rgba(255,255,255,.03);border:none;color:rgba(255,255,255,.4);font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.07em;cursor:pointer;text-transform:uppercase;transition:all .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.mode-btn.active{background:rgba(201,168,76,.15);color:var(--gl)}
+.mode-btn:first-child{border-right:1px solid var(--border)}
+/* ── Chakra tone panel ── */
+.chakra-panel{margin:6px 6px 0;display:none}
+.chakra-panel.visible{display:block}
+.chakra-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:7px}
+.cBtn{padding:8px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);cursor:pointer;font-family:'Raleway',sans-serif;font-size:.65rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:all .2s}
+.cBtn span{font-size:.55rem;opacity:.55;font-weight:400}
+.cBtn.playing{transform:scale(1.06);box-shadow:0 0 14px var(--cborder,rgba(255,255,255,.3))}
+.cBtn:active{opacity:.7}
+.tone-row{display:flex;align-items:center;gap:10px;padding:4px 2px 6px}
+.tone-row label{font-size:.62rem;color:rgba(255,255,255,.4);min-width:52px}
+.tone-row input[type=range]{flex:1;accent-color:var(--gold)}
+.tone-stop{flex-shrink:0;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,90,90,.35);background:rgba(255,90,90,.07);color:#ff9999;font-size:.65rem;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tone-stop:active{opacity:.6}
 .mid-row{display:flex;align-items:center;gap:14px;padding:8px 12px}
 .mic-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
 .mic-btn{width:62px;height:62px;border-radius:50%;border:2px solid var(--gold);background:radial-gradient(circle,rgba(201,168,76,.14) 0%,rgba(201,168,76,.02) 70%);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;-webkit-tap-highlight-color:transparent;transition:all .2s}
@@ -91,6 +108,30 @@ header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--bor
     <div class="app-subtitle">Sound · Geometry · Healing</div>
   </header>
 
+  <!-- Mode toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeMeasure">🎙️ Measure Mantra</button>
+    <button class="mode-btn"        id="modeChakra" >🔊 Chakra Tones</button>
+  </div>
+
+  <!-- Chakra tone panel (shown in Chakra mode) -->
+  <div class="chakra-panel" id="chakraPanel">
+    <div class="chakra-grid">
+      <button class="cBtn" style="border-color:rgba(180,0,0,.4);--cborder:rgba(220,40,40,.6)"   data-freq="136" data-sym="OM"  data-name="Sri Yantra">OM<span>136 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(180,40,0,.4);--cborder:rgba(220,80,0,.6)"   data-freq="256" data-sym="LAM" data-name="Muladhara">LAM<span>256 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(180,120,0,.4);--cborder:rgba(220,160,0,.6)" data-freq="288" data-sym="VAM" data-name="Svadhisthana">VAM<span>288 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(180,180,0,.4);--cborder:rgba(220,220,0,.6)" data-freq="528" data-sym="RAM" data-name="Manipura">RAM<span>528 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(0,160,60,.4);--cborder:rgba(0,200,80,.6)"   data-freq="594" data-sym="YAM" data-name="Anahata">YAM<span>594 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(0,120,220,.4);--cborder:rgba(0,170,255,.6)" data-freq="672" data-sym="HAM" data-name="Vishuddha">HAM<span>672 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(80,0,200,.4);--cborder:rgba(120,60,255,.6)" data-freq="852" data-sym="OM"  data-name="Ajna">AUM<span>852 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(160,0,200,.4);--cborder:rgba(200,60,255,.6)"data-freq="963" data-sym="AH"  data-name="Sahasrara">AH<span>963 Hz</span></button>
+    </div>
+    <div class="tone-row">
+      <label>Volume</label>
+      <input type="range" id="toneVol" min="0" max="100" value="28">
+      <button class="tone-stop" id="toneStop">■ Stop</button>
+    </div>
+  </div>
   <div class="status-bar">
     <div>
       <div class="mantra-display" id="mantraDisplay">—</div>
@@ -103,12 +144,9 @@ header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--bor
       <div class="purity-score" id="purityScore">0%</div>
     </div>
   </div>
-
   <div class="waveform-bar"><canvas id="waveformCanvas"></canvas></div>
-
   <div class="panel-label sand-label">Sand Cymatics</div>
   <canvas id="sandCanvas"></canvas>
-
   <div class="mid-row">
     <div class="mic-col">
       <div class="mic-btn" id="micBtn">
@@ -126,10 +164,8 @@ header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--bor
       <div class="corr-bar"><div class="corr-fill" id="corrFill"></div></div>
     </div>
   </div>
-
   <div class="panel-label laser-label">Laser Pattern</div>
   <canvas id="laserCanvas"></canvas>
-
   <div class="actions">
     <button class="btn btn-save" id="btnSave"><span class="btn-icon">💾</span>Save</button>
     <button class="btn btn-view" id="btnView"><span class="btn-icon">📂</span>Saved</button>
@@ -137,7 +173,6 @@ header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--bor
     <button class="btn btn-new"  id="btnNew"><span class="btn-icon">✨</span>New</button>
   </div>
 </div>
-
 <div class="modal-overlay" id="saveModal">
   <div class="modal">
     <div class="modal-title">Save Session<button class="close-btn" id="closeSave">✕</button></div>
@@ -148,37 +183,34 @@ header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--bor
     <button class="btn-confirm" id="confirmSave">✦ Save to Library</button>
   </div>
 </div>
-
 <div class="modal-overlay" id="sessionsModal">
   <div class="modal">
     <div class="modal-title">Saved Sessions<button class="close-btn" id="closeSessions">✕</button></div>
     <div class="sessions-list" id="sessionsList"></div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
 'use strict';
-
 // ── State ─────────────────────────────────────────────────
 let SC, LC, WC, Sx, Lx, Wx;   // canvases + contexts
 let SW=300,SH=160,LW=300,LH=160; // sand/laser dimensions
-
 let audioCtx=null,analyser=null,micStream=null;
 let isListening=false,sessionActive=false;
 let smoothAmp=0,smoothFreq=120,T=0;
 let curFreq=0,curPurity=0,curCorr=0,curMantra='—',curMatch='—';
 let particles=[];
-const N=3500;
-
+const N=14000;   // 4× for higher Vedic mantra resolution
+// ── Mode & Tone state ──────────────────────────────────────
+let appMode='measure';   // 'measure' | 'chakra'
+let toneACtx=null, toneOsc=null, toneGainNode=null;
+let toneActive=false, toneFreqVal=0;
 const LIBRARY=[
   {name:'Sri Yantra',freq:136},{name:'Muladhara',freq:256},
   {name:'Svadhisthana',freq:288},{name:'Manipura',freq:528},
   {name:'Anahata',freq:594},{name:'Vishuddha',freq:672},
   {name:'Ajna',freq:852},{name:'Sahasrara',freq:963}
 ];
-
 // ── Setup ─────────────────────────────────────────────────
 function setup(){
   SC=document.getElementById('sandCanvas');
@@ -189,7 +221,6 @@ function setup(){
   window.addEventListener('resize',resize);
   loop();
 }
-
 function resize(){
   const W=Math.min(window.innerWidth,480)-12;
   const H=Math.round(W*0.5);
@@ -200,22 +231,17 @@ function resize(){
   WC.width=wb.offsetWidth||300; WC.height=28;
   initP();
 }
-
 // ── Particles ─────────────────────────────────────────────
 function initP(){
   particles=[];
   for(let i=0;i<N;i++){
-    const a=Math.random()*Math.PI*2;
-    const r=Math.sqrt(Math.random())*Math.min(SW,SH)*0.48;
     particles.push({
-      x:SW/2+Math.cos(a)*r, y:SH/2+Math.sin(a)*r,
-      vx:0,vy:0,
-      sz:Math.random()*1.3+0.4,
-      hue:Math.random()*60+15
+      x:Math.random()*SW, y:Math.random()*SH,
+      vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5,
+      sz:Math.random()*1.3+0.4, hue:Math.random()*60+15
     });
   }
 }
-
 // ── Physics ───────────────────────────────────────────────
 function chladni(x,y,freq,t){
   const nx=(x/SW)*Math.PI*2, ny=(y/SH)*Math.PI*2;
@@ -228,12 +254,10 @@ function chladni(x,y,freq,t){
     dy:-n*Math.cos(m*nx)*Math.sin(n*ny)*(Math.PI*2/SH)
   };
 }
-
 // ── Draw sand ─────────────────────────────────────────────
 function drawSand(freq,amp,t){
   Sx.fillStyle='rgba(0,0,0,0.17)';
   Sx.fillRect(0,0,SW,SH);
-
   particles.forEach(p=>{
     if(amp>0.015){
       const f=chladni(p.x,p.y,freq,t);
@@ -251,7 +275,6 @@ function drawSand(freq,amp,t){
     if(p.x>SW-1){p.x=SW-1;p.vx*=-.4;}
     if(p.y<1){p.y=1;p.vy*=-.4;}
     if(p.y>SH-1){p.y=SH-1;p.vy*=-.4;}
-
     let nv=0;
     if(amp>0.015){const f2=chladni(p.x,p.y,freq,t);nv=Math.max(0,1-Math.abs(f2.z)*2.2);}
     const h=p.hue+nv*55+freq/18;
@@ -263,7 +286,6 @@ function drawSand(freq,amp,t){
     Sx.fill();
   });
 }
-
 // ── Draw laser ────────────────────────────────────────────
 function drawLaser(freq,amp,t){
   Lx.fillStyle='rgba(0,0,0,0.2)';
@@ -275,7 +297,6 @@ function drawLaser(freq,amp,t){
   const delta=t*.007+(freq/480)*Math.PI;
   const rx=(LW/2-8)*.9, ry=(LH/2-6)*.9;
   const steps=1800;
-
   function path(){
     Lx.beginPath();
     for(let i=0;i<=steps;i++){
@@ -285,11 +306,9 @@ function drawLaser(freq,amp,t){
       i===0?Lx.moveTo(x,y):Lx.lineTo(x,y);
     }
   }
-
   path();Lx.strokeStyle=`rgba(0,100,220,${sa*.18})`;Lx.lineWidth=7;Lx.stroke();
   path();Lx.strokeStyle=`rgba(0,160,255,${sa*.6})`;Lx.lineWidth=2.2;Lx.stroke();
   path();Lx.strokeStyle=`rgba(200,240,255,${Math.min(1,sa*1.5)})`;Lx.lineWidth=0.85;Lx.stroke();
-
   if(sa>0.15){
     for(let i=0;i<6;i++){
       const tt=((i/6)+t*.0008)*Math.PI*2*Math.max(a,b);
@@ -300,7 +319,6 @@ function drawLaser(freq,amp,t){
     }
   }
 }
-
 // ── Waveform ──────────────────────────────────────────────
 function drawWave(data){
   const W=WC.width,H=WC.height;
@@ -313,14 +331,12 @@ function drawWave(data){
   }
   Wx.strokeStyle='rgba(201,168,76,0.6)';Wx.lineWidth=1;Wx.stroke();
 }
-
 // ── Audio analysis ────────────────────────────────────────
 function getPitch(data,sr){
   let mx=-1,idx=0;
   for(let i=2;i<data.length;i++){if(data[i]>mx){mx=data[i];idx=i;}}
   return(idx*sr)/(data.length*2);
 }
-
 function getMantra(f){
   if(f<200)return{sym:'OM',label:'Sri Yantra / Crown'};
   if(f<310)return{sym:'LAM',label:'Muladhara — Root'};
@@ -331,7 +347,6 @@ function getMantra(f){
   if(f<900)return{sym:'OM',label:'Ajna — Third Eye'};
   return{sym:'AH',label:'Sahasrara — Crown'};
 }
-
 function getCorr(f,a){
   if(a<0.02)return{score:0,name:'—'};
   let best=0,name='—';
@@ -341,32 +356,35 @@ function getCorr(f,a){
   });
   return{score:Math.min(100,Math.round(best*100)),name};
 }
-
 // ── Main loop ─────────────────────────────────────────────
 function loop(){
   requestAnimationFrame(loop);
   T+=0.016;
 
-  if(isListening&&analyser){
+  if(appMode==='chakra'&&toneActive){
+    // Chakra tone mode — drive visuals from oscillator frequency
+    smoothAmp+=(0.65-smoothAmp)*.08;
+    curPurity=Math.min(100,Math.round(smoothAmp*115));
+    drawSand(toneFreqVal,smoothAmp,T);
+    drawLaser(toneFreqVal,smoothAmp,T);
+
+  } else if(appMode==='measure'&&isListening&&analyser){
+    // Measure mode — mic analysis
     const fD=new Uint8Array(analyser.frequencyBinCount);
     const tD=new Uint8Array(analyser.fftSize);
     analyser.getByteFrequencyData(fD);
     analyser.getByteTimeDomainData(tD);
-
     let sum=0; fD.forEach(v=>sum+=v);
     const ra=(sum/(fD.length*255))*4;
     smoothAmp+=(ra-smoothAmp)*.12;
-
     const rf=getPitch(fD,audioCtx.sampleRate);
     if(rf>50&&rf<2000&&smoothAmp>0.018) smoothFreq+=(rf-smoothFreq)*.08;
-
     curFreq=Math.round(smoothFreq);
     curPurity=Math.min(100,Math.round(smoothAmp*115));
     const m=getMantra(smoothFreq);
     curMantra=m.sym;
     const c=getCorr(smoothFreq,smoothAmp);
     curCorr=c.score; curMatch=c.name;
-
     $('mantraDisplay').textContent=m.sym;
     $('mantraName').textContent=m.label;
     $('freqDisplay').textContent=curFreq+' Hz';
@@ -375,20 +393,18 @@ function loop(){
     $('corrFill').style.width=curCorr+'%';
     $('corrScore').textContent=curCorr+'%';
     $('matchName').textContent=curMatch;
-
     drawWave(tD);
     drawSand(smoothFreq,smoothAmp,T);
     drawLaser(smoothFreq,smoothAmp,T);
+
   } else {
     smoothAmp=Math.max(0,smoothAmp*.97);
     drawSand(110+Math.sin(T*.28)*35,0.05,T);
     drawLaser(120+Math.sin(T*.18)*55,0.18,T);
   }
 }
-
 // ── Mic ───────────────────────────────────────────────────
 async function toggleMic(){isListening?stopMic():await startMic();}
-
 async function startMic(){
   try{
     if(!navigator.mediaDevices?.getUserMedia){toast('Browser does not support mic');return;}
@@ -409,7 +425,6 @@ async function startMic(){
          e.name==='NotFoundError'?'No microphone found':'Mic error: '+e.message);
   }
 }
-
 function stopMic(){
   micStream?.getTracks().forEach(t=>t.stop());
   audioCtx?.close();
@@ -418,7 +433,69 @@ function stopMic(){
   $('micIcon').textContent='🎙️';
   $('micHint').textContent='Tap to start';
 }
-
+// ── Chakra Tone Engine ─────────────────────────────────────
+function playTone(freq,name,sym){
+  stopTone(false);
+  try{
+    toneACtx=new(window.AudioContext||window.webkitAudioContext)();
+    toneOsc=toneACtx.createOscillator();
+    toneGainNode=toneACtx.createGain();
+    toneOsc.type='sine';
+    toneOsc.frequency.value=freq;
+    const vol=($('toneVol')?.value||28)/100;
+    toneGainNode.gain.setValueAtTime(0,toneACtx.currentTime);
+    toneGainNode.gain.linearRampToValueAtTime(vol,toneACtx.currentTime+0.12);
+    toneOsc.connect(toneGainNode);
+    toneGainNode.connect(toneACtx.destination);
+    toneOsc.start();
+    toneFreqVal=freq; toneActive=true; sessionActive=true;
+    curFreq=freq; curMantra=sym; curMatch=name;
+    // Update status bar
+    $('mantraDisplay').textContent=sym;
+    $('mantraName').textContent=name;
+    $('freqDisplay').textContent=freq+' Hz';
+    $('corrFill').style.width='100%';
+    $('corrScore').textContent='100%';
+    $('matchName').textContent=name;
+    // Highlight active chakra button
+    document.querySelectorAll('.cBtn').forEach(b=>{
+      b.classList.toggle('playing',parseInt(b.dataset.freq)===freq);
+    });
+    toast('♪ Playing '+freq+' Hz — '+name);
+  }catch(e){ toast('Audio error: '+e.message); }
+}
+function stopTone(updateUI=true){
+  if(toneGainNode&&toneACtx){
+    toneGainNode.gain.linearRampToValueAtTime(0,toneACtx.currentTime+0.1);
+    setTimeout(()=>toneACtx?.close(),150);
+  }
+  toneOsc=null; toneGainNode=null; toneACtx=null;
+  toneActive=false; toneFreqVal=0;
+  if(updateUI){
+    document.querySelectorAll('.cBtn').forEach(b=>b.classList.remove('playing'));
+    smoothAmp=0;
+  }
+}
+// Volume live update
+function updateToneVol(){
+  if(toneGainNode&&toneACtx){
+    toneGainNode.gain.linearRampToValueAtTime(
+      ($('toneVol').value||28)/100, toneACtx.currentTime+0.05
+    );
+  }
+}
+// ── Mode switch ────────────────────────────────────────────
+function setMode(mode){
+  appMode=mode;
+  const isMeasure=(mode==='measure');
+  $('modeMeasure').classList.toggle('active', isMeasure);
+  $('modeChakra').classList.toggle('active',!isMeasure);
+  $('chakraPanel').classList.toggle('visible',!isMeasure);
+  $('micBtn').parentElement.parentElement.style.display=isMeasure?'':'none'; // hide mid-row in chakra mode
+  if(isMeasure){ stopTone(); }
+  else          { stopMic(); }
+  toast(isMeasure?'Measure mode — chant into mic':'Chakra Tone mode — tap a chakra');
+}
 // ── Save / Load ───────────────────────────────────────────
 function openSave(){
   if(!sessionActive){toast('Start a session first');return;}
@@ -426,7 +503,6 @@ function openSave(){
   $('sessionNotes').value='';
   $('saveModal').classList.add('open');
 }
-
 function doSave(){
   const s={
     id:Date.now(),
@@ -443,9 +519,7 @@ function doSave(){
   $('saveModal').classList.remove('open');
   toast('Session saved');
 }
-
 function loadSessions(){try{return JSON.parse(localStorage.getItem('cm_sess')||'[]');}catch{return[];}}
-
 function openSessions(){
   const list=loadSessions();
   $('sessionsList').innerHTML=list.length===0
@@ -458,7 +532,6 @@ function openSessions(){
       </div>`).join('');
   $('sessionsModal').classList.add('open');
 }
-
 // ── PDF ───────────────────────────────────────────────────
 function doPDF(){
   const ts=new Date().toLocaleString();
@@ -489,7 +562,6 @@ h1{color:#f0d080;font-size:1.8rem;text-align:center}
   w.document.write(html);w.document.close();
   toast('PDF ready — Print > Save as PDF');
 }
-
 // ── Reset ─────────────────────────────────────────────────
 function doNew(){
   stopMic();sessionActive=false;
@@ -501,7 +573,6 @@ function doNew(){
   $('corrScore').textContent='0%';$('matchName').textContent='—';
   initP();toast('Ready for new session');
 }
-
 // ── Utils ─────────────────────────────────────────────────
 const $=id=>document.getElementById(id);
 function toast(msg){
@@ -509,14 +580,8 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'),2600);
 }
 function closeModal(id){$(id).classList.remove('open');}
-
 // ── Boot ──────────────────────────────────────────────────
 window.addEventListener('load',()=>{
-  // Register service worker for PWA
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('sw.js')
-      .catch(e=>console.log('SW reg failed:',e));
-  }
   setup();
   $('micBtn').addEventListener('click',toggleMic);
   $('btnSave').addEventListener('click',openSave);
@@ -526,6 +591,20 @@ window.addEventListener('load',()=>{
   $('confirmSave').addEventListener('click',doSave);
   $('closeSave').addEventListener('click',()=>closeModal('saveModal'));
   $('closeSessions').addEventListener('click',()=>closeModal('sessionsModal'));
+  // Mode toggle
+  $('modeMeasure').addEventListener('click',()=>setMode('measure'));
+  $('modeChakra').addEventListener('click',()=>setMode('chakra'));
+  // Chakra tone buttons
+  document.querySelectorAll('.cBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const f=parseInt(btn.dataset.freq);
+      const playing=btn.classList.contains('playing');
+      if(playing){ stopTone(); }
+      else{ playTone(f,btn.dataset.name,btn.dataset.sym); }
+    });
+  });
+  $('toneStop').addEventListener('click',stopTone);
+  $('toneVol').addEventListener('input',updateToneVol);
   document.querySelectorAll('.modal-overlay').forEach(el=>
     el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');})
   );
