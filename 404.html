@@ -1,10 +1,2510 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<script>
-  sessionStorage.redirect = location.href;
-  location.replace(location.origin + '/cymatics/');
-</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CymaticaMandala</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050810">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CymaticaMandala">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Raleway:wght@300;400;500&display=swap');
+:root{--gold:#c9a84c;--gl:#f0d080;--deep:#050810;--border:rgba(201,168,76,0.3);--blue:#00aaff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--deep);color:#fff;font-family:'Raleway',sans-serif;min-height:100vh;overflow-x:hidden;user-select:none;-webkit-user-select:none}
+.app{max-width:480px;margin:0 auto;padding-bottom:120px}
+header{text-align:center;padding:10px 16px 7px;border-bottom:1px solid var(--border)}
+.app-title{font-family:'Cinzel',serif;font-size:1.35rem;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gl),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:.08em}
+.app-subtitle{font-size:.58rem;color:rgba(201,168,76,.55);letter-spacing:.25em;text-transform:uppercase}
+.status-bar{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;border-bottom:1px solid var(--border);background:rgba(201,168,76,.04)}
+.mantra-display{font-family:'Cinzel',serif;font-size:1.1rem;color:var(--gl)}
+.mantra-name{font-size:.58rem;color:rgba(255,255,255,.3);margin-top:1px}
+.freq-display{display:none;text-align:center;font-size:1rem;color:var(--blue);font-weight:500}
+.freq-display.visible{display:block}
+.freq-display span{display:block;font-size:1rem;color:var(--blue);font-weight:500}
+.purity-wrap{text-align:right}
+.purity-label{font-size:.58rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em}
+.purity-bar{width:68px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:3px}
+.purity-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gl));border-radius:2px;transition:width .3s}
+.purity-score{font-size:.65rem;color:var(--gl);text-align:right;margin-top:2px}
+.waveform-bar{height:28px;margin:5px 6px 0;background:rgba(0,0,0,.4);border-radius:5px;border:1px solid var(--border);overflow:hidden}
+#waveformCanvas{width:100%;height:100%;display:block}
+.panel-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.2em;text-align:center;padding:3px 0;border-radius:3px;margin:7px 6px 3px}
+.sand-label{color:#ff9944;background:rgba(255,153,68,.07);border:1px solid rgba(255,153,68,.2)}
+.laser-label{color:var(--blue);background:rgba(0,170,255,.07);border:1px solid rgba(0,170,255,.2)}
+/* ── Mode toggle ── */
+.mode-toggle{display:flex;gap:0;margin:8px 8px 0;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.mode-btn{flex:1;padding:8px 6px;background:rgba(255,255,255,.03);border:none;color:rgba(255,255,255,.4);font-family:'Raleway',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.07em;cursor:pointer;text-transform:uppercase;transition:all .2s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.mode-btn.active{background:rgba(201,168,76,.15);color:var(--gl)}
+.mode-btn:not(:last-child){border-right:1px solid var(--border)}
+/* ── Chakra tone panel ── */
+.chakra-panel{margin:6px 6px 0;display:none}
+.chakra-panel.visible{display:block}
+/* ── Brainwave panel ── */
+.brainwave-panel{margin:6px 6px 0;display:none}
+.brainwave-panel.visible{display:block}
+.bw-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:7px}
+.bwBtn{padding:7px 3px;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);cursor:pointer;
+  font-family:'Raleway',sans-serif;font-size:.62rem;font-weight:700;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:all .25s}
+.bwBtn .bw-icon{font-size:1rem}
+.bwBtn .bw-hz{font-size:.48rem;opacity:.55;font-weight:400;margin-top:1px}
+.bwBtn.playing{transform:scale(1.07);box-shadow:0 0 16px var(--bwglow,rgba(255,255,255,.3))}
+.bwBtn:active{opacity:.7}
+.bw-info{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;padding:8px 10px;margin-bottom:6px;min-height:36px;
+  display:flex;align-items:center;gap:10px}
+.bw-info-icon{font-size:1.4rem;flex-shrink:0}
+.bw-info-text{flex:1}
+.bw-info-name{font-size:.72rem;font-weight:600;color:var(--bw-col,#aaa)}
+.bw-info-desc{font-size:.56rem;color:rgba(255,255,255,.38);margin-top:1px}
+.bw-carrier{font-size:.52rem;color:rgba(255,255,255,.28);margin-top:2px}
+/* ── Carrier selector ── */
+.carrier-section{margin-top:6px;padding:6px 0 2px;border-top:1px solid rgba(255,255,255,.06)}
+.carrier-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.carrier-section-label{font-size:.55rem;text-transform:uppercase;letter-spacing:.18em;color:rgba(255,255,255,.3)}
+.carrier-active-display{font-size:.6rem;color:#b088ff;font-weight:600}
+.carrier-presets{display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap}
+.cPresetBtn{flex:1;min-width:0;padding:5px 3px;border-radius:7px;border:1px solid rgba(176,136,255,.2);
+  background:rgba(176,136,255,.05);color:rgba(255,255,255,.6);
+  font-family:'Raleway',sans-serif;font-size:.56rem;font-weight:600;
+  cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;transition:all .2s;white-space:nowrap}
+.cPresetBtn .cp-hz{display:block;font-size:.68rem;color:#b088ff;font-weight:700;margin-bottom:1px}
+.cPresetBtn .cp-name{display:block;font-size:.44rem;opacity:.55;letter-spacing:.05em}
+.cPresetBtn.active{background:rgba(176,136,255,.18);border-color:rgba(176,136,255,.6);color:#fff}
+.cPresetBtn:active{opacity:.6}
+.carrier-custom-row{display:flex;align-items:center;gap:6px;padding:2px 0 4px}
+.carrier-custom-row label{font-size:.56rem;color:rgba(255,255,255,.35);white-space:nowrap;min-width:58px}
+.carrier-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(176,136,255,.25);
+  border-radius:7px;padding:5px 8px;color:#fff;font-family:'Raleway',sans-serif;
+  font-size:.78rem;outline:none;text-align:center;min-width:0;
+  -webkit-appearance:none;appearance:none}
+.carrier-input:focus{border-color:#b088ff}
+.carrier-apply-btn{flex-shrink:0;padding:5px 10px;border-radius:7px;
+  border:1px solid rgba(176,136,255,.4);background:rgba(176,136,255,.1);
+  color:#c0a0ff;font-size:.62rem;font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;white-space:nowrap}
+.carrier-apply-btn:active{opacity:.6}
+.carrier-note{font-size:.5rem;color:rgba(255,255,255,.22);text-align:center;padding:1px 0 2px;font-style:italic}
+.bw-tone-row{display:flex;align-items:center;gap:10px;padding:4px 2px 4px}
+.bw-tone-row label{font-size:.62rem;color:rgba(255,255,255,.4);min-width:52px}
+.bw-tone-row input[type=range]{flex:1;accent-color:#b088ff}
+.bw-stop{flex-shrink:0;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,90,90,.35);background:rgba(255,90,90,.07);color:#ff9999;font-size:.65rem;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.bw-stop:active{opacity:.6}
+.panel-label.bw-label{color:#b088ff;background:rgba(176,136,255,.07);border:1px solid rgba(176,136,255,.2)}
+.chakra-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:7px}
+.cBtn{padding:8px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);cursor:pointer;font-family:'Raleway',sans-serif;font-size:.65rem;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:all .2s}
+.cBtn span{font-size:.55rem;opacity:.55;font-weight:400}
+.cBtn.playing{transform:scale(1.06);box-shadow:0 0 14px var(--cborder,rgba(255,255,255,.3))}
+.cBtn:active{opacity:.7}
+.tone-row{display:flex;align-items:center;gap:10px;padding:4px 2px 6px}
+.tone-row label{font-size:.62rem;color:rgba(255,255,255,.4);min-width:52px}
+.tone-row input[type=range]{flex:1;accent-color:var(--gold)}
+.tone-stop{flex-shrink:0;padding:6px 14px;border-radius:8px;border:1px solid rgba(255,90,90,.35);background:rgba(255,90,90,.07);color:#ff9999;font-size:.65rem;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tone-stop:active{opacity:.6}
+.custom-freq-row{display:flex;align-items:center;gap:6px;padding:4px 2px 6px;border-top:1px solid rgba(255,255,255,.06);margin-top:2px}
+.custom-freq-row label{font-size:.6rem;color:rgba(255,255,255,.4);white-space:nowrap;min-width:48px}
+.freq-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(201,168,76,.25);
+  border-radius:7px;padding:6px 10px;color:#fff;font-family:'Raleway',sans-serif;
+  font-size:.82rem;outline:none;text-align:center;min-width:0;
+  -webkit-appearance:none;appearance:none}
+.freq-input:focus{border-color:var(--gold)}
+.freq-play-btn{flex-shrink:0;padding:6px 11px;border-radius:7px;
+  border:1px solid rgba(201,168,76,.4);background:rgba(201,168,76,.1);
+  color:var(--gl);font-size:.68rem;font-weight:600;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;white-space:nowrap}
+.freq-play-btn:active{opacity:.6}
+.freq-play-btn.playing{border-color:rgba(255,90,90,.4);background:rgba(255,90,90,.1);color:#ff9999}
+.mid-row{display:flex;align-items:center;gap:14px;padding:8px 12px}
+.mic-col{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.mic-btn{width:62px;height:62px;border-radius:50%;border:2px solid var(--gold);background:radial-gradient(circle,rgba(201,168,76,.14) 0%,rgba(201,168,76,.02) 70%);cursor:pointer;display:flex;align-items:center;justify-content:center;position:relative;-webkit-tap-highlight-color:transparent;transition:all .2s}
+.mic-btn.active{border-color:#ff4444;background:radial-gradient(circle,rgba(255,68,68,.2) 0%,rgba(255,68,68,.04) 70%);animation:pulse-mic 1.4s ease-in-out infinite}
+@keyframes pulse-mic{0%,100%{box-shadow:0 0 16px rgba(255,68,68,.3)}50%{box-shadow:0 0 30px rgba(255,68,68,.6)}}
+.mic-ring{position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(201,168,76,.2);animation:ring-out 2s ease-out infinite;opacity:0}
+.mic-btn.active .mic-ring{border-color:rgba(255,68,68,.3);animation:ring-out 1.2s ease-out infinite}
+@keyframes ring-out{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.45);opacity:0}}
+.mic-icon{font-size:26px}
+.mic-hint{font-size:.6rem;color:rgba(255,255,255,.3);text-align:center;margin-top:4px}
+.corr-col{flex:1;display:flex;flex-direction:column;gap:5px}
+.corr-top{display:flex;align-items:center;gap:8px}
+.corr-label{font-size:.58rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.35);white-space:nowrap}
+.corr-score{font-size:.95rem;font-weight:600;color:var(--gl);min-width:40px;text-align:right}
+.match-name{font-size:.62rem;color:rgba(201,168,76,.75);white-space:nowrap}
+.corr-bar{width:100%;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden}
+.corr-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--blue),var(--gold));border-radius:3px;transition:width .5s}
+.actions{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;padding:8px 8px 18px;gap:6px;background:linear-gradient(to top,rgba(5,8,16,.98) 65%,transparent);z-index:50}
+.btn{flex:1;padding:11px 4px;border-radius:10px;border:1px solid;font-family:'Raleway',sans-serif;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;-webkit-tap-highlight-color:transparent;transition:opacity .15s}
+.btn:active{opacity:.6}
+.btn-icon{font-size:17px}
+.btn-save{background:rgba(201,168,76,.08);border-color:rgba(201,168,76,.35);color:var(--gl)}
+.btn-view{background:rgba(0,170,255,.07);border-color:rgba(0,170,255,.28);color:var(--blue)}
+.btn-pdf{background:rgba(80,200,80,.07);border-color:rgba(80,200,80,.28);color:#88dd88}
+.btn-new{background:rgba(255,90,90,.07);border-color:rgba(255,90,90,.28);color:#ff9999}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:100;padding:20px;overflow-y:auto;align-items:flex-start;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:rgba(10,14,30,.97);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:440px;margin-top:20px}
+.modal-title{font-family:'Cinzel',serif;font-size:1rem;color:var(--gl);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.close-btn{background:none;border:none;color:rgba(255,255,255,.4);font-size:1.2rem;cursor:pointer;padding:4px 8px}
+.form-label{font-size:.68rem;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.form-input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:10px 12px;color:#fff;font-family:'Raleway',sans-serif;font-size:.85rem;outline:none;margin-bottom:12px}
+.form-input:focus{border-color:var(--gold)}
+.btn-confirm{width:100%;background:linear-gradient(135deg,rgba(201,168,76,.25),rgba(201,168,76,.1));border:1px solid var(--gold);border-radius:8px;padding:12px;color:var(--gl);font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.1em;cursor:pointer}
+.sessions-list{display:flex;flex-direction:column;gap:10px;max-height:65vh;overflow-y:auto}
+.session-card{background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.18);border-radius:10px;padding:12px}
+.session-top{display:flex;justify-content:space-between;margin-bottom:5px}
+.session-mantra{font-family:'Cinzel',serif;font-size:.95rem;color:var(--gl)}
+.session-date{font-size:.58rem;color:rgba(255,255,255,.3)}
+.session-meta{font-size:.62rem;color:rgba(255,255,255,.45);display:flex;gap:10px}
+.session-meta span{color:var(--blue)}
+.session-thumbs{display:flex;gap:6px;margin-top:8px}
+.session-thumbs img{flex:1;border-radius:6px;border:1px solid rgba(255,255,255,.1);max-height:90px;object-fit:cover;width:0}
+.no-sessions{text-align:center;padding:40px 20px;color:rgba(255,255,255,.28);font-size:.85rem;line-height:2}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(14px);background:rgba(8,12,28,.96);border:1px solid var(--gold);border-radius:20px;padding:8px 20px;font-size:.75rem;color:var(--gl);opacity:0;transition:all .28s;z-index:200;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* ── Motion enable button ── */
+.motion-btn{display:none;margin:4px 12px 0;padding:6px 12px;border-radius:20px;
+  border:1px solid rgba(201,168,76,.3);background:rgba(201,168,76,.06);
+  color:rgba(201,168,76,.7);font-family:'Raleway',sans-serif;font-size:.6rem;
+  font-weight:600;letter-spacing:.1em;cursor:pointer;text-align:center;
+  -webkit-tap-highlight-color:transparent;transition:all .2s}
+.motion-btn.needed{display:block}
+.motion-btn.granted{border-color:rgba(0,255,157,.3);background:rgba(0,255,157,.06);
+  color:rgba(0,255,157,.8);pointer-events:none}
+/* ── YN chest placement notice ── */
+.yn-chest-notice{background:rgba(68,221,204,.07);border:1px solid rgba(68,221,204,.25);
+  border-radius:8px;padding:8px 10px;margin-bottom:8px;text-align:center}
+.yn-chest-en{font-size:.62rem;color:rgba(68,221,204,.9);font-weight:600;letter-spacing:.03em}
+.yn-chest-hi{display:block;font-size:.6rem;color:rgba(68,221,204,.65);margin-top:2px}
+.yn-chest-note{display:block;font-size:.5rem;color:rgba(255,255,255,.25);margin-top:4px;font-style:italic;letter-spacing:.04em}
+/* ── Yoga Nidra panel ── */
+.nidra-panel{margin:6px 6px 0;display:none}
+.nidra-panel.visible{display:block}
+.nidra-setup{background:rgba(255,255,255,.03);border:1px solid rgba(176,136,255,.18);border-radius:10px;padding:12px;margin-bottom:6px}
+.nidra-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.nidra-row label{font-size:.62rem;color:rgba(255,255,255,.4);min-width:72px}
+.nidra-dur-btns{display:flex;gap:5px;flex:1}
+.nidra-dur-btn{flex:1;padding:6px 4px;border-radius:7px;border:1px solid rgba(176,136,255,.3);background:rgba(176,136,255,.05);color:rgba(176,136,255,.7);font-family:'Raleway',sans-serif;font-size:.65rem;font-weight:600;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;transition:all .2s}
+.nidra-dur-btn.active{background:rgba(176,136,255,.2);color:#d4b8ff;border-color:rgba(176,136,255,.6)}
+.nidra-start-btn{width:100%;padding:11px;border-radius:9px;border:1px solid rgba(176,136,255,.45);background:linear-gradient(135deg,rgba(176,136,255,.18),rgba(176,136,255,.06));color:#d4b8ff;font-family:'Cinzel',serif;font-size:.85rem;letter-spacing:.1em;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .2s}
+.nidra-start-btn:active{opacity:.7}
+.nidra-active{background:rgba(5,8,16,.95);border:1px solid rgba(176,136,255,.25);border-radius:10px;padding:12px;margin-bottom:6px;display:none}
+.nidra-active.visible{display:block}
+.nidra-phase-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.58rem;font-weight:600;text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px}
+.nidra-phase-settling{background:rgba(0,220,200,.1);color:#44ddcc;border:1px solid rgba(0,220,200,.3)}
+.nidra-phase-deepening{background:rgba(130,60,200,.12);color:#b088ff;border:1px solid rgba(130,60,200,.35)}
+.nidra-phase-depth{background:rgba(60,80,200,.12);color:#8899ff;border:1px solid rgba(60,80,200,.35)}
+.nidra-phase-return{background:rgba(0,220,200,.1);color:#44ddcc;border:1px solid rgba(0,220,200,.3)}
+.nidra-instruction{font-size:.78rem;color:rgba(255,255,255,.82);line-height:1.6;min-height:52px;font-style:italic;margin-bottom:10px;padding:8px 10px;background:rgba(176,136,255,.05);border-left:2px solid rgba(176,136,255,.3);border-radius:0 6px 6px 0}
+.nidra-progress-wrap{margin-bottom:8px}
+.nidra-progress-label{display:flex;justify-content:space-between;margin-bottom:3px}
+.nidra-progress-label span{font-size:.55rem;color:rgba(255,255,255,.3)}
+.nidra-progress-bar{width:100%;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.nidra-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#b088ff,#44ddcc);border-radius:2px;transition:width 1s linear}
+.nidra-phase-bar{width:100%;height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-bottom:8px}
+.nidra-phase-fill{height:100%;width:0%;border-radius:2px;transition:width 1s linear}
+.nidra-ctrl-row{display:flex;gap:6px}
+.nidra-stop-btn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,90,90,.35);background:rgba(255,90,90,.07);color:#ff9999;font-size:.65rem;font-family:'Raleway',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nidra-mute-btn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(176,136,255,.3);background:rgba(176,136,255,.07);color:#d4b8ff;font-size:.65rem;font-family:'Raleway',sans-serif;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nidra-day-label{font-size:.55rem;color:rgba(255,255,255,.25);text-align:right;margin-bottom:4px}
+/* ── YN Stage strip (during session) ── */
+.yn-stage-row{display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:3px;min-height:14px}
+.yn-stage-counter{font-size:.52rem;color:rgba(255,255,255,.3);letter-spacing:.05em}
+.yn-stage-name{font-size:.58rem;color:rgba(255,255,255,.5);font-style:italic;
+  max-width:70%;text-align:right;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.yn-stage-strip{display:flex;gap:2px;margin-bottom:8px;align-items:flex-end}
+.yn-s-block{flex:1;border-radius:2px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.06);transition:all .6s;height:10px;min-width:0}
+.yn-s-block.done{height:10px;opacity:.55}
+.yn-s-block.active{height:16px;box-shadow:0 0 8px currentColor}
+/* ── Nidra log button ── */
+.nidra-log-btn{width:100%;margin-top:6px;padding:7px;border-radius:8px;
+  border:1px solid rgba(201,168,76,.2);background:rgba(201,168,76,.04);
+  color:rgba(201,168,76,.55);font-family:'Raleway',sans-serif;font-size:.6rem;
+  font-weight:600;letter-spacing:.12em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nidra-log-btn:active{opacity:.6}
+/* ── Post-session review panel ── */
+.nidra-review{background:rgba(5,8,20,.98);border:1px solid rgba(201,168,76,.3);
+  border-radius:10px;padding:12px;margin-bottom:6px;display:none}
+.nidra-review.visible{display:block}
+.review-header{margin-bottom:6px}
+.review-title{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gl);margin-bottom:1px}
+.review-subtitle{font-size:.54rem;color:rgba(255,255,255,.3);letter-spacing:.05em}
+.review-legend{display:flex;gap:5px;justify-content:flex-start;margin-bottom:8px;flex-wrap:wrap}
+.rl-item{display:flex;align-items:center;gap:3px;font-size:.47rem;color:rgba(255,255,255,.35)}
+.rl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+/* 2-col grid of 12 stage cards */
+.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:8px}
+.rsc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.09);
+  border-radius:7px;padding:5px 6px;transition:border-color .25s}
+.rsc.rated{border-color:var(--rsc-col,rgba(255,255,255,.2))}
+.rsc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.rsc-num{font-size:.46rem;color:rgba(255,255,255,.28)}
+.rsc-phase-pill{font-size:.4rem;padding:1px 5px;border-radius:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.06em}
+.rsc-name{font-size:.58rem;color:rgba(255,255,255,.7);margin-bottom:5px;
+  line-height:1.25;min-height:14px}
+/* ── 3-axis micro-slider rating system ── */
+.rsc-sliders{display:flex;flex-direction:column;gap:4px;margin-top:3px}
+.rsc-axis{display:flex;align-items:center;gap:5px}
+.rsc-axis-icon{font-size:.72rem;flex-shrink:0;width:16px;text-align:center}
+.rsc-axis-track{flex:1;position:relative;height:18px;display:flex;align-items:center}
+.rsc-axis-track input[type=range]{
+  width:100%;height:4px;-webkit-appearance:none;appearance:none;
+  background:rgba(255,255,255,.08);border-radius:2px;outline:none;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:pan-y}
+.rsc-axis-track input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--ax-col,rgba(255,255,255,.5));
+  background:var(--ax-col,rgba(255,255,255,.5));
+  box-shadow:0 0 6px var(--ax-col,rgba(255,255,255,.3));
+  transition:box-shadow .15s;cursor:pointer}
+.rsc-axis-track input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;border:2px solid var(--ax-col,rgba(255,255,255,.5));
+  background:var(--ax-col,rgba(255,255,255,.5));cursor:pointer}
+.rsc-axis-val{font-size:.62rem;font-weight:700;min-width:13px;text-align:right;
+  color:var(--ax-col,rgba(255,255,255,.4))}
+/* Review bottom */
+.review-notes-label{font-size:.56rem;color:rgba(255,255,255,.3);text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:3px}
+.review-notes{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.2);
+  border-radius:7px;padding:7px 10px;color:#fff;font-family:'Raleway',sans-serif;
+  font-size:.75rem;outline:none;resize:none;margin-bottom:8px;display:block}
+.review-notes:focus{border-color:var(--gold)}
+.review-btn-row{display:flex;gap:6px}
+.review-save-btn{flex:3;padding:9px;border-radius:8px;
+  border:1px solid rgba(201,168,76,.45);background:rgba(201,168,76,.1);
+  color:var(--gl);font-family:'Cinzel',serif;font-size:.78rem;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.review-save-btn:active{opacity:.6}
+.review-skip-btn{flex:1;padding:9px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.12);background:transparent;
+  color:rgba(255,255,255,.3);font-size:.62rem;cursor:pointer;
+  font-family:'Raleway',sans-serif;-webkit-tap-highlight-color:transparent}
+/* YN Log modal */
+.yn-rc{background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.15);
+  border-radius:10px;padding:11px;margin-bottom:8px}
+.yn-rc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.yn-rc-title{font-family:'Cinzel',serif;font-size:.85rem;color:var(--gl)}
+.yn-rc-date{font-size:.52rem;color:rgba(255,255,255,.22)}
+.yn-heatmap{display:flex;gap:2px;margin-bottom:5px}
+.yn-hm-b{flex:1;height:22px;border-radius:3px;border:1px solid;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.42rem;font-weight:700;cursor:help;transition:opacity .2s}
+.yn-hm-b:hover{opacity:.75}
+.yn-rc-meta{font-size:.54rem;color:rgba(255,255,255,.3);margin-bottom:3px}
+.yn-rc-notes{font-size:.6rem;color:rgba(255,255,255,.42);font-style:italic}
+/* ── Shake flash ── */
+@keyframes shake-flash{0%{opacity:1}20%{opacity:.3}40%{opacity:1}60%{opacity:.4}80%{opacity:1}100%{opacity:1}}
+.shake-flash{animation:shake-flash .5s ease-out}
+/* ── Frequency Trajectory Logger ── */
+#freqLogger{display:none;margin:4px 6px;background:rgba(0,0,0,.35);
+  border:1px solid rgba(68,221,204,.18);border-radius:8px;padding:6px 8px}
+#freqLogger.visible{display:block}
+.flog-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.flog-title{font-size:.55rem;color:rgba(68,221,204,.7);letter-spacing:.08em;text-transform:uppercase}
+.flog-stats{font-size:.52rem;color:rgba(255,255,255,.35);letter-spacing:.04em}
+#freqSparkline{width:100%;height:36px;display:block}
+.flog-btn-row{display:flex;gap:6px;margin-top:5px}
+.flog-btn{flex:1;font-size:.52rem;padding:4px 0;border-radius:5px;border:1px solid rgba(68,221,204,.25);
+  background:rgba(68,221,204,.06);color:rgba(68,221,204,.8);cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.flog-btn:active{background:rgba(68,221,204,.15)}
+.flog-btn.danger{border-color:rgba(255,80,80,.25);color:rgba(255,120,120,.7);background:rgba(255,80,80,.05)}
+
+#modeStatus{display:none}
+#modeStatus.active{display:flex;align-items:center;gap:0}
+/* ── Waveform bar hidden outside Measure mode ── */
+.waveform-bar{display:none}
+.waveform-bar.visible{display:block}
+</style>
 </head>
+<body>
+<div class="app">
+  <header>
+    <div class="app-title">CymaticaMandala</div>
+    <div class="app-subtitle">Sound · Geometry · Healing</div>
+  </header>
+
+  <!-- Mode toggle -->
+  <div class="mode-toggle">
+    <button class="mode-btn active" id="modeMeasure">🎙️ Measure</button>
+    <button class="mode-btn"        id="modeChakra" >🔊 Chakra</button>
+    <button class="mode-btn"        id="modeBrainwave">🧠 Brainwave</button>
+    <button class="mode-btn"        id="modeNidra">🧘 Nidra</button>
+  </div>
+
+  <!-- Chakra tone panel (shown in Chakra mode) -->
+  <div class="chakra-panel" id="chakraPanel">
+    <div class="chakra-grid">
+      <button class="cBtn" style="border-color:rgba(180,0,0,.4);--cborder:rgba(220,40,40,.6)"   data-freq="136" data-sym="OM"  data-name="OM · 136 Hz">OM<span>136 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(180,40,0,.4);--cborder:rgba(220,80,0,.6)"   data-freq="256" data-sym="LAM" data-name="Muladhara">LAM<span>256 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(180,120,0,.4);--cborder:rgba(220,160,0,.6)" data-freq="288" data-sym="VAM" data-name="Svadhisthana">VAM<span>288 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(180,180,0,.4);--cborder:rgba(220,220,0,.6)" data-freq="528" data-sym="RAM" data-name="Manipura">RAM<span>528 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(0,160,60,.4);--cborder:rgba(0,200,80,.6)"   data-freq="594" data-sym="YAM" data-name="Anahata">YAM<span>594 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(0,120,220,.4);--cborder:rgba(0,170,255,.6)" data-freq="672" data-sym="HAM" data-name="Vishuddha">HAM<span>672 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(80,0,200,.4);--cborder:rgba(120,60,255,.6)" data-freq="852" data-sym="OM"  data-name="Ajna">AUM<span>852 Hz</span></button>
+      <button class="cBtn" style="border-color:rgba(160,0,200,.4);--cborder:rgba(200,60,255,.6)"data-freq="963" data-sym="AH"  data-name="Sahasrara">AH<span>963 Hz</span></button>
+    </div>
+    <div class="tone-row">
+      <label>Volume</label>
+      <input type="range" id="toneVol" min="0" max="100" value="28">
+      <button class="tone-stop" id="toneStop">■ Stop</button>
+    </div>
+    <div class="custom-freq-row">
+      <label>Custom Hz</label>
+      <input class="freq-input" type="number" id="customFreqInput"
+        step="any" placeholder="e.g. 432 Hz"/>
+      <button class="freq-play-btn" id="customFreqBtn">▶ Play</button>
+    </div>
+  </div>
+
+  <!-- Brainwave entrainment panel (shown in Brainwave mode) -->
+  <div class="brainwave-panel" id="brainwavePanel">
+    <div class="bw-grid">
+      <button class="bwBtn" id="bwDelta"
+        style="border-color:rgba(60,80,200,.5);--bwglow:rgba(80,100,255,.5)"
+        data-bw="delta">🌑<br>Delta<span class="bw-hz">0.5–4 Hz</span></button>
+      <button class="bwBtn" id="bwTheta"
+        style="border-color:rgba(130,60,200,.5);--bwglow:rgba(170,80,255,.5)"
+        data-bw="theta">🌙<br>Theta<span class="bw-hz">4–8 Hz</span></button>
+      <button class="bwBtn" id="bwAlpha"
+        style="border-color:rgba(0,160,160,.5);--bwglow:rgba(0,220,200,.5)"
+        data-bw="alpha">🌿<br>Alpha<span class="bw-hz">8–13 Hz</span></button>
+      <button class="bwBtn" id="bwBeta"
+        style="border-color:rgba(40,180,60,.5);--bwglow:rgba(60,230,80,.5)"
+        data-bw="beta">⚡<br>Beta<span class="bw-hz">13–30 Hz</span></button>
+      <button class="bwBtn" id="bwGamma"
+        style="border-color:rgba(200,168,40,.5);--bwglow:rgba(255,220,60,.6)"
+        data-bw="gamma">✨<br>Gamma<span class="bw-hz">30–100 Hz</span></button>
+    </div>
+    <div class="bw-info" id="bwInfo">
+      <div class="bw-info-icon" id="bwInfoIcon">🧠</div>
+      <div class="bw-info-text">
+        <div class="bw-info-name" id="bwInfoName" style="--bw-col:#b088ff">Select a brainwave state</div>
+        <div class="bw-info-desc" id="bwInfoDesc">Binaural beats entrain neural oscillations via the frequency-following response</div>
+        <div class="bw-carrier" id="bwCarrier">Use headphones for binaural effect</div>
+      </div>
+    </div>
+    <div class="bw-tone-row">
+      <label>Volume</label>
+      <input type="range" id="bwVol" min="0" max="100" value="22">
+      <button class="bw-stop" id="bwStop">■ Stop</button>
+    </div>
+    <!-- Carrier frequency selector -->
+    <div class="carrier-section">
+      <div class="carrier-label-row">
+        <span class="carrier-section-label">Carrier Frequency</span>
+        <span class="carrier-active-display" id="carrierActiveDisplay">200 Hz (Neutral)</span>
+      </div>
+      <div class="carrier-presets" id="carrierPresets">
+        <button class="cPresetBtn" data-carrier="100" data-label="Deep">
+          <span class="cp-hz">100 Hz</span><span class="cp-name">Deep/Delta</span>
+        </button>
+        <button class="cPresetBtn" data-carrier="136" data-label="OM">
+          <span class="cp-hz">136 Hz</span><span class="cp-name">OM / Earth</span>
+        </button>
+        <button class="cPresetBtn active" data-carrier="200" data-label="Neutral">
+          <span class="cp-hz">200 Hz</span><span class="cp-name">Neutral ✓</span>
+        </button>
+        <button class="cPresetBtn" data-carrier="432" data-label="Verdi">
+          <span class="cp-hz">432 Hz</span><span class="cp-name">Natural A</span>
+        </button>
+        <button class="cPresetBtn" data-carrier="528" data-label="Solfa">
+          <span class="cp-hz">528 Hz</span><span class="cp-name">Solfeggio</span>
+        </button>
+      </div>
+      <div class="carrier-custom-row">
+        <label>Custom Hz</label>
+        <input class="carrier-input" type="number" id="carrierCustomInput"
+          step="1" min="20" placeholder="e.g. 174"/>
+        <button class="carrier-apply-btn" id="carrierApplyBtn">Apply</button>
+      </div>
+      <div class="carrier-note">Any carrier ≥ 20 Hz works · lower = more visceral for Delta · headphones required</div>
+    </div>
+  </div>
+  <!-- Yoga Nidra session panel -->
+  <div class="nidra-panel" id="nidraPanel">
+    <div class="nidra-setup" id="nidraSetup">
+      <div class="nidra-day-label" id="nidraDayLabel">Day 1 of 8</div>
+      <div class="nidra-row">
+        <label>Duration</label>
+        <div class="nidra-dur-btns">
+          <button class="nidra-dur-btn active" data-min="30">30 min</button>
+          <button class="nidra-dur-btn" data-min="45">45 min</button>
+          <button class="nidra-dur-btn" data-min="60">60 min</button>
+        </div>
+      </div>
+      <div class="yn-chest-notice">
+        <span class="yn-chest-en">📱 Place device face-up on chest before starting</span>
+        <span class="yn-chest-hi">📱 शुरू करने से पहले उपकरण छाती पर सीधा रखें</span>
+        <span class="yn-chest-note">Body axis auto-scored from stillness · 🫧 Body prefill requires motion permission</span>
+      </div>
+      <button class="nidra-start-btn" id="nidraStartBtn">✦ Begin Yoga Nidra</button>
+      <button class="nidra-log-btn" id="nidraLogBtn">📊 Past Session Reviews</button>
+    </div>
+    <div class="nidra-active" id="nidraActive">
+      <div class="nidra-day-label" id="nidraActiveDayLabel">Day 1 · Settling</div>
+      <div class="nidra-phase-badge nidra-phase-settling" id="nidraPhaseBadge">Settling — Alpha 10 Hz</div>
+      <!-- 12-stage strip -->
+      <div class="yn-stage-row">
+        <span class="yn-stage-counter">Stage <span id="ynStageNum">—</span>/12</span>
+        <span class="yn-stage-name" id="ynStageName"></span>
+      </div>
+      <div class="yn-stage-strip" id="ynStageStrip"></div>
+      <div class="nidra-instruction" id="nidraInstruction">Preparing...</div>
+      <div class="nidra-progress-wrap">
+        <div class="nidra-progress-label"><span>Session</span><span id="nidraTimeLabel">0:00</span></div>
+        <div class="nidra-progress-bar"><div class="nidra-progress-fill" id="nidraProgressFill"></div></div>
+      </div>
+      <div class="nidra-phase-bar"><div class="nidra-phase-fill" id="nidraPhaseBar"></div></div>
+      <div class="nidra-ctrl-row">
+        <button class="nidra-mute-btn" id="nidraMuteBtn">🔔 Voice On</button>
+        <button class="nidra-stop-btn" id="nidraStopBtn">■ End Session</button>
+      </div>
+    </div>
+    <!-- Post-session review panel -->
+    <div class="nidra-review" id="nidraReview">
+      <div class="review-header">
+        <div class="review-title">Session Review</div>
+        <div class="review-subtitle" id="reviewSubtitle">Rate each stage — tap the dots</div>
+      </div>
+      <div class="review-legend">
+        <div class="rl-item"><div class="rl-dot" style="background:#44ddcc"></div>🫧 Body — body dissolution</div>
+        <div class="rl-item"><div class="rl-dot" style="background:#b088ff"></div>🌫 Mind — thought quieting</div>
+        <div class="rl-item"><div class="rl-dot" style="background:#f0d080"></div>🎇 Image — hypnagogic imagery</div>
+      </div>
+      <div class="review-grid" id="reviewGrid"></div>
+      <div class="review-notes-label">Notes</div>
+      <textarea class="review-notes" id="reviewNotes" rows="2" placeholder="How did it feel?"></textarea>
+      <div class="review-btn-row">
+        <button class="review-save-btn" id="reviewSaveBtn">✦ Save Review</button>
+        <button class="review-skip-btn" id="reviewSkipBtn">Skip</button>
+      </div>
+    </div>
+  </div>
+    <div id="modeStatus">
+      <div class="mantra-display" id="mantraDisplay">—</div>
+      <div class="mantra-name" id="mantraName"></div>
+    </div>
+    <div class="freq-display" id="freqDisplay">— Hz</div>
+    <div class="purity-wrap">
+      <div class="purity-label">Purity</div>
+      <div class="purity-bar"><div class="purity-fill" id="purityFill"></div></div>
+      <div class="purity-score" id="purityScore">0%</div>
+    </div>
+  </div>
+  <div class="waveform-bar" id="waveformBar"><canvas id="waveformCanvas"></canvas></div>
+  <!-- Frequency Trajectory Logger — visible only when mic active -->
+  <div id="freqLogger">
+    <div class="flog-header">
+      <span class="flog-title">📈 Freq Trajectory</span>
+      <span class="flog-stats" id="flogStats">—</span>
+    </div>
+    <canvas id="freqSparkline"></canvas>
+    <div class="flog-btn-row">
+      <button class="flog-btn" id="flogExport">⬇ Export CSV</button>
+      <button class="flog-btn danger" id="flogClear">✕ Clear</button>
+    </div>
+  </div>
+  <div class="panel-label sand-label">Sand Cymatics</div>
+  <canvas id="sandCanvas"></canvas>
+  <div class="mid-row">
+    <div class="mic-col">
+      <div class="mic-btn" id="micBtn">
+        <div class="mic-ring"></div>
+        <span class="mic-icon" id="micIcon">🎙️</span>
+      </div>
+      <div class="mic-hint" id="micHint">Tap to start</div>
+    </div>    <div class="corr-col">
+      <div class="corr-top">
+        <span class="corr-label">Match</span>
+        <span class="corr-score" id="corrScore">0%</span>
+        <span class="match-name" id="matchName">—</span>
+      </div>
+      <div class="corr-bar"><div class="corr-fill" id="corrFill"></div></div>
+    </div>
+  </div>
+  <button class="motion-btn" id="motionBtn">📳 Enable Shake to Reset</button>
+  <div class="panel-label laser-label">Laser Pattern</div>
+  <canvas id="laserCanvas"></canvas>
+  <div class="actions">
+    <button class="btn btn-save" id="btnSave"><span class="btn-icon">💾</span>Save</button>
+    <button class="btn btn-view" id="btnView"><span class="btn-icon">📂</span>Saved</button>
+    <button class="btn btn-pdf"  id="btnPdf"><span class="btn-icon">📄</span>PDF</button>
+    <button class="btn btn-new"  id="btnNew"><span class="btn-icon">✨</span>New</button>
+  </div>
+</div>
+<div class="modal-overlay" id="saveModal">
+  <div class="modal">
+    <div class="modal-title">Save Session<button class="close-btn" id="closeSave">✕</button></div>
+    <div class="form-label">Session Name</div>
+    <input class="form-input" id="sessionName" placeholder="e.g. Morning OM chant"/>
+    <div class="form-label">Notes (optional)</div>
+    <input class="form-input" id="sessionNotes" placeholder="How did you feel?"/>
+    <button class="btn-confirm" id="confirmSave">✦ Save to Library</button>
+  </div>
+</div>
+<div class="modal-overlay" id="sessionsModal">
+  <div class="modal">
+    <div class="modal-title">Saved Sessions<button class="close-btn" id="closeSessions">✕</button></div>
+    <div class="sessions-list" id="sessionsList"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="ynLogModal">
+  <div class="modal">
+    <div class="modal-title">YN Session Reviews<button class="close-btn" id="closeYnLog">✕</button></div>
+    <div class="sessions-list" id="ynLogList"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+'use strict';
+// ── State ─────────────────────────────────────────────────
+let SC, LC, WC, Sx, Lx, Wx;   // canvases + contexts
+let SW=300,SH=160,LW=300,LH=160; // sand/laser dimensions
+let audioCtx=null,analyser=null,micStream=null;
+let isListening=false,sessionActive=false;
+let smoothAmp=0,smoothFreq=120,T=0;
+let curFreq=0,curPurity=0,curCorr=0,curMantra='—',curMatch='—';
+let particles=[];
+const N=28000;   // 8× for rich Vedic mantra resolution
+// Settle state: 0=active(warm amber) 1=settled(cyan-violet) 2=scatter(rainbow burst)
+let settleState=0, settleTimer=0;
+const SETTLE_FRAMES=90;
+// ── Mode & Tone state ──────────────────────────────────────
+let appMode='measure';   // 'measure' | 'chakra'
+let toneACtx=null, toneOsc=null, toneGainNode=null;
+let toneActive=false, toneFreqVal=0;
+const LIBRARY=[
+  {name:'OM · 136 Hz',freq:136},{name:'Muladhara',freq:256},
+  {name:'Svadhisthana',freq:288},{name:'Manipura',freq:528},
+  {name:'Anahata',freq:594},{name:'Vishuddha',freq:672},
+  {name:'Ajna',freq:852},{name:'Sahasrara',freq:963}
+];
+// ── Polar Chladni Mode Map ────────────────────────────────
+// m = angular nodal lines (rotational symmetry)
+// n = radial nodal circles
+// Each chakra maps to its natural circular-plate Bessel mode
+const POLAR_MODES={
+  136:{m:2, n:1},   // OM / Earth     — lowest order: simple 2-lobe + 1 ring
+  256:{m:4, n:2},   // Muladhara    — 4-fold square / earth tattva
+  288:{m:6, n:2},   // Svadhisthana — 6-fold hexagonal / water tattva
+  528:{m:8, n:3},   // Manipura     — 8-pointed fire star
+  594:{m:12,n:2},   // Anahata      — 12-petal heart lotus
+  672:{m:16,n:3},   // Vishuddha    — 16-petal throat lotus
+  852:{m:2, n:4},   // Ajna         — vesica / eye (deep radial)
+  963:{m:24,n:4},   // Sahasrara    — 24-fold crown (1000-petal approx)
+};
+const CHAKRA_HUES={
+  136:38,  // OM — warm amber/gold
+  256:0,   288:28,  528:52,
+  594:125, 672:200, 852:255, 963:285
+};
+// ── Brainwave Entrainment State Map ──────────────────────
+// Each entry: beat frequency (Hz), carrier, Bessel m/n, display hue, CSS color
+const BRAINWAVE_STATES={
+  delta:{id:'delta',name:'Delta',range:'0.5–4 Hz', beat:2,  carrier:200,
+         desc:'Deep dreamless sleep & healing', m:1,n:1, hue:230, col:'#6080ff',
+         icon:'🌑', pattern:'Single radial pulse'},
+  theta:{id:'theta',name:'Theta',range:'4–8 Hz',  beat:6,  carrier:200,
+         desc:'Meditation & hypnagogic threshold', m:2,n:2, hue:270, col:'#b088ff',
+         icon:'🌙', pattern:'Vesica / figure-8'},
+  alpha:{id:'alpha',name:'Alpha',range:'8–13 Hz', beat:10, carrier:200,
+         desc:'Relaxed awareness & light meditation', m:3,n:2, hue:180, col:'#44ddcc',
+         icon:'🌿', pattern:'Trefoil / triangular'},
+  beta: {id:'beta', name:'Beta', range:'13–30 Hz',beat:20, carrier:200,
+         desc:'Focus, alertness & active thinking', m:5,n:3, hue:120, col:'#55ee77',
+         icon:'⚡', pattern:'Pentagonal complex'},
+  gamma:{id:'gamma',name:'Gamma',range:'30–100 Hz',beat:40,carrier:200,
+         desc:'Peak cognition, insight & binding', m:8,n:4, hue:52,  col:'#f0d060',
+         icon:'✨', pattern:'Dense 8-fold star'},
+};
+// Lissajous ratios for laser (visually compelling near-integer ratios per beat)
+const BW_LASER_RATIO={delta:[1,1],theta:[3,4],alpha:[9,10],beta:[4,5],gamma:[5,6]};
+let bwActive=false, bwStateData=null;
+let bwACtx=null, bwLeftOsc=null, bwRightOsc=null, bwGainNode=null;
+let bwCarrierHz=200; // user-selectable carrier frequency
+function getPolarMode(freq){
+  const f=Math.round(freq);
+  let best=null,bestD=Infinity;
+  Object.entries(POLAR_MODES).forEach(([hf,mode])=>{
+    const d=Math.abs(f-parseInt(hf));
+    if(d<bestD){bestD=d;best=mode;}
+  });
+  return bestD<25?best:null;
+}
+function hasPolarMode(freq){ return getPolarMode(freq)!==null; }
+function getChakraHue(freq){
+  const f=Math.round(freq);
+  let best=52,bestD=Infinity;
+  Object.entries(CHAKRA_HUES).forEach(([hf,hue])=>{
+    const d=Math.abs(f-parseInt(hf));
+    if(d<bestD){bestD=d;best=hue;}
+  });
+  return best;
+}
+// ── Setup ─────────────────────────────────────────────────
+function setup(){
+  SC=document.getElementById('sandCanvas');
+  LC=document.getElementById('laserCanvas');
+  WC=document.getElementById('waveformCanvas');
+  Sx=SC.getContext('2d'); Lx=LC.getContext('2d'); Wx=WC.getContext('2d');
+  resize();
+  window.addEventListener('resize',resize);
+  loop();
+}
+function resize(){
+  
+  const W=Math.min(window.innerWidth,480)-12;
+  const H=Math.round(W*0.5);
+  SW=W; SH=H; LW=W; LH=H;
+  SC.width=W; SC.height=H; SC.style.width=W+'px'; SC.style.height=H+'px';
+  LC.width=W; LC.height=H; LC.style.width=W+'px'; LC.style.height=H+'px';
+  const wb=$('waveformBar');
+  WC.width=wb.offsetWidth||300; WC.height=28;
+  initP();
+}
+// ── Particles ─────────────────────────────────────────────
+function initP(){
+  particles=[];
+  const cx=SW/2,cy=SH/2,R=Math.min(SW,SH)*0.44;
+  for(let i=0;i<N;i++){
+    // Uniform random distribution inside circle (polar coords)
+    const a=Math.random()*Math.PI*2;
+    const r=Math.sqrt(Math.random())*R;
+    particles.push({
+      x:cx+Math.cos(a)*r, y:cy+Math.sin(a)*r,
+      vx:(Math.random()-.5)*.5, vy:(Math.random()-.5)*.5,
+      sz:Math.random()*2.6+0.8, hue:Math.random()*60+15
+    });
+  }
+}
+// ── Physics ───────────────────────────────────────────────
+function chladni(x,y,freq,t){
+  const nx=(x/SW)*Math.PI*2, ny=(y/SH)*Math.PI*2;
+  const m=Math.max(1,Math.round(freq/180));
+  const n=Math.max(1,Math.round(freq/220));
+  const z=Math.cos(m*nx)*Math.cos(n*ny)+0.28*Math.cos((m+1)*nx)*Math.sin((n+1)*ny+t*0.4);
+  return{
+    z,
+    dx:-m*Math.sin(m*nx)*Math.cos(n*ny)*(Math.PI*2/SW),
+    dy:-n*Math.cos(m*nx)*Math.sin(n*ny)*(Math.PI*2/SH)
+  };
+}
+// ── Polar (circular-plate) Chladni ────────────────────────
+// Approximates Bessel nodal lines: J_m(k·r)·cos(m·θ) = 0
+// Returns {z, dx, dy} — same interface as chladni()
+// overrideMode: optional {m,n} bypasses frequency lookup (for brainwave mode)
+function chladniPolar(x,y,freq,t,overrideMode){
+  const cx=SW/2,cy=SH/2;
+  const R=Math.min(SW,SH)*0.44;
+  const dx0=x-cx,dy0=y-cy;
+  const r=Math.hypot(dx0,dy0);
+  const rn=r/R; // normalised 0..1
+
+  // Outside circle — strong centripetal return force
+  if(rn>1.0){
+    const inv=1/(r+0.001);
+    return{z:1,dx:dx0*inv*0.6,dy:dy0*inv*0.6};
+  }
+
+  const mode=overrideMode||getPolarMode(freq)||{m:4,n:2};
+  const m=mode.m, n=mode.n;
+  const theta=Math.atan2(dy0,dx0);
+
+  // Radial: Hankel-approximated Bessel via shifted cosine
+  // k sets n nodal circles inside [0,R]
+  const k=(n+0.25)*Math.PI;
+  const phase=-m*Math.PI/4;
+  const kr=k*rn+phase;
+  const radial=Math.cos(kr);
+  const angPhase=m*theta+t*0.004;
+  const angular=Math.cos(angPhase);
+  const z=radial*angular;
+
+  // Analytical gradient in polar → Cartesian
+  const dz_dr =-(k/R)*Math.sin(kr)*angular;
+  const dz_dth=-m*radial*Math.sin(angPhase);
+  const rSafe=r+0.001;
+  const ct=dx0/rSafe, st=dy0/rSafe;
+  const gx=dz_dr*ct - dz_dth*st/rSafe;
+  const gy=dz_dr*st + dz_dth*ct/rSafe;
+
+  return{z,dx:gx,dy:gy};
+}
+// ── Draw sand ─────────────────────────────────────────────
+function drawSand(freq,amp,t){
+  Sx.fillStyle='rgba(0,0,0,0.17)';
+  Sx.fillRect(0,0,SW,SH);
+  const isBrainwave=(appMode==='brainwave'&&bwActive&&bwStateData);
+  const isPolar=!isBrainwave&&hasPolarMode(freq);
+  // Faint boundary ring for polar/brainwave modes
+  if(isPolar||isBrainwave){
+    const bcx=SW/2,bcy=SH/2,bR=Math.min(SW,SH)*0.44;
+    Sx.beginPath();Sx.arc(bcx,bcy,bR,0,Math.PI*2);
+    const ringCol=isBrainwave?`hsla(${bwStateData.hue},60%,50%,0.12)`:'rgba(201,168,76,0.07)';
+    Sx.strokeStyle=ringCol;Sx.lineWidth=1;Sx.stroke();
+  }
+
+  const bwMode=isBrainwave?{m:bwStateData.m,n:bwStateData.n}:null;
+
+  particles.forEach(p=>{
+    if(amp>0.015){
+      let f;
+      if(isBrainwave){
+        f=chladniPolar(p.x,p.y,0,t,bwMode);
+        const pull=Math.abs(f.z)*amp*3.2;
+        p.vx+=-f.dx*pull*3.0;
+        p.vy+=-f.dy*pull*3.0;
+      } else if(isPolar){
+        f=chladniPolar(p.x,p.y,freq,t);
+        const pull=Math.abs(f.z)*amp*3.2;
+        p.vx+=-f.dx*pull*3.0;
+        p.vy+=-f.dy*pull*3.0;
+      } else {
+        f=chladni(p.x,p.y,freq,t);
+        const pull=Math.abs(f.z)*amp*3;
+        p.vx+=-f.dx*pull*2.8;
+        p.vy+=-f.dy*pull*2.8;
+      }
+    } else {
+      p.vx+=(Math.random()-.5)*.22;
+      p.vy+=(Math.random()-.5)*.22;
+    }
+    p.vx*=.87; p.vy*=.87;
+    p.x+=p.vx; p.y+=p.vy;
+    // rectangular bounce
+    if(p.x<1){p.x=1;p.vx*=-.4;}
+    if(p.x>SW-1){p.x=SW-1;p.vx*=-.4;}
+    if(p.y<1){p.y=1;p.vy*=-.4;}
+    if(p.y>SH-1){p.y=SH-1;p.vy*=-.4;}
+    // Circular boundary for polar/brainwave modes
+    if(isPolar||isBrainwave){
+      const bcx=SW/2,bcy=SH/2,bR=Math.min(SW,SH)*0.44;
+      const bdr=Math.hypot(p.x-bcx,p.y-bcy);
+      if(bdr>bR){
+        const ba=Math.atan2(p.y-bcy,p.x-bcx);
+        p.x=bcx+Math.cos(ba)*bR*0.96;
+        p.y=bcy+Math.sin(ba)*bR*0.96;
+        const bdot=p.vx*Math.cos(ba)+p.vy*Math.sin(ba);
+        p.vx-=2*bdot*Math.cos(ba)*0.45;
+        p.vy-=2*bdot*Math.sin(ba)*0.45;
+      }
+    }
+    let nv=0;
+    if(amp>0.015){
+      if(isBrainwave){
+        const f2=chladniPolar(p.x,p.y,0,t,bwMode);
+        nv=Math.max(0,1-Math.abs(f2.z)*2.0);
+      } else if(isPolar){
+        const f2=chladniPolar(p.x,p.y,freq,t);
+        nv=Math.max(0,1-Math.abs(f2.z)*2.0);
+      } else {
+        const f2=chladni(p.x,p.y,freq,t);
+        nv=Math.max(0,1-Math.abs(f2.z)*2.2);
+      }
+    }
+    // 3-state colour with 10s scatter arc
+    let fillStyle;
+    if(settleState===2){
+      const elapsed=Date.now()-scatterStart;
+      const p0=Math.min(1, elapsed/SCATTER_DUR);
+      if(p0<0.2){
+        fillStyle=`hsla(${p.hue},92%,66%,${0.55+nv*.4})`;
+      } else if(p0<0.6){
+        const calm=(p0-0.2)/0.4;
+        const sat=92-calm*30;
+        const lit=66-calm*14;
+        const al=0.55-calm*0.15;
+        fillStyle=`hsla(${p.hue},${sat}%,${lit}%,${al+nv*.35})`;
+      } else {
+        const warm=(p0-0.6)/0.4;
+        const amberH=25+nv*35+freq/18;
+        const lerpH=p.hue*(1-warm)+amberH*warm;
+        const sat=62+warm*10;
+        const lit=52+warm*6;
+        const al=0.40+warm*.10+nv*.42;
+        fillStyle=`hsla(${lerpH},${sat}%,${lit}%,${al})`;
+      }
+    } else if(settleState===1){
+      const h=185+nv*130, s=55+nv*35, l=42+nv*36;
+      fillStyle=`hsla(${h},${s}%,${l}%,${0.28+nv*.55})`;
+    } else if(isBrainwave && amp>0.015){
+      // Brainwave: state-specific hue, cool crystalline nodal lines
+      const bh=bwStateData.hue;
+      if(nv>0.20){
+        const l=28+nv*52, s=70+nv*25, al=0.18+nv*0.76;
+        fillStyle=`hsla(${bh+nv*20},${s}%,${l}%,${al})`;
+      } else {
+        fillStyle=`hsla(${bh},35%,8%,${0.04+nv*0.07})`;
+      }
+    } else if(isPolar && amp>0.015){
+      const ch=getChakraHue(freq);
+      if(nv>0.22){
+        const l=30+nv*48;
+        const s=78+nv*18;
+        const al=0.20+nv*0.72;
+        fillStyle=`hsla(${ch+nv*16},${s}%,${l}%,${al})`;
+      } else {
+        fillStyle=`hsla(${ch},40%,7%,${0.05+nv*0.08})`;
+      }
+    } else {
+      const h=p.hue+nv*55+freq/18;
+      const s=55+nv*35, l=42+nv*38;
+      const al=amp>0.015?0.38+nv*.52:0.2;
+      fillStyle=`hsla(${h},${s}%,${l}%,${al})`;
+    }
+    Sx.beginPath();
+    Sx.arc(p.x,p.y,p.sz*(0.7+nv*0.75),0,Math.PI*2);
+    Sx.fillStyle=fillStyle;
+    Sx.fill();
+  });
+  // Circular mask — paint app background over rectangle corners for polar/brainwave modes
+  if(isPolar||isBrainwave){
+    const mcx=SW/2,mcy=SH/2,mR=Math.min(SW,SH)*0.44;
+    Sx.fillStyle='#050810';
+    Sx.beginPath();
+    Sx.rect(0,0,SW,SH);
+    Sx.arc(mcx,mcy,mR+1,0,Math.PI*2,true);
+    Sx.fill('evenodd');
+  }
+  // Track settle state
+  if(sessionActive && amp<0.015){
+    settleTimer++;
+    if(settleTimer>SETTLE_FRAMES && settleState===0) settleState=1;
+  } else if(amp>=0.015){
+    settleTimer=0;
+    if(settleState===1) settleState=0;
+  }
+}
+// ── Draw laser ────────────────────────────────────────────
+function drawLaser(freq,amp,t){
+  Lx.fillStyle='rgba(0,0,0,0.2)';
+  Lx.fillRect(0,0,LW,LH);
+  const cx=LW/2,cy=LH/2;
+  const sa=Math.max(amp,0.1);
+  const a=Math.max(1,Math.round(freq/200));
+  const b=Math.max(1,Math.round(freq/175));
+  const delta=t*.007+(freq/480)*Math.PI;
+  const rx=(LW/2-8)*.9, ry=(LH/2-6)*.9;
+  const steps=1800;
+  function path(){
+    Lx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const tt=(i/steps)*Math.PI*2*Math.max(a,b);
+      const x=cx+rx*Math.sin(a*tt+delta);
+      const y=cy+ry*Math.sin(b*tt);
+      i===0?Lx.moveTo(x,y):Lx.lineTo(x,y);
+    }
+  }
+  path();Lx.strokeStyle=`rgba(0,100,220,${sa*.18})`;Lx.lineWidth=7;Lx.stroke();
+  path();Lx.strokeStyle=`rgba(0,160,255,${sa*.6})`;Lx.lineWidth=2.2;Lx.stroke();
+  path();Lx.strokeStyle=`rgba(200,240,255,${Math.min(1,sa*1.5)})`;Lx.lineWidth=0.85;Lx.stroke();
+  if(sa>0.15){
+    for(let i=0;i<6;i++){
+      const tt=((i/6)+t*.0008)*Math.PI*2*Math.max(a,b);
+      const x=cx+rx*Math.sin(a*tt+delta);
+      const y=cy+ry*Math.sin(b*tt);
+      Lx.beginPath();Lx.arc(x,y,1.8,0,Math.PI*2);
+      Lx.fillStyle='rgba(255,255,255,0.85)';Lx.fill();
+    }
+  }
+}
+// ── Brainwave Lissajous laser ─────────────────────────────
+function drawLaserBrainwave(state,amp,t){
+  Lx.fillStyle='rgba(0,0,0,0.15)';
+  Lx.fillRect(0,0,LW,LH);
+  const cx=LW/2,cy=LH/2;
+  const sa=Math.max(amp,0.1);
+  const rx=(LW/2-8)*.88, ry=(LH/2-6)*.88;
+  const [ra,rb]=BW_LASER_RATIO[state.id]||[1,1];
+  // Phase drifts at beat rate — slow, meditative rotation
+  const driftSpeed=state.beat*0.00008;
+  const delta=t*driftSpeed;
+  // lcm for complete figure
+  function gcd(a,b){return b?gcd(b,a%b):a;}
+  const lcm=(a,b)=>a*b/gcd(a,b);
+  const steps=Math.min(3600, lcm(ra,rb)*360);
+  const h=state.hue;
+  function bwPath(){
+    Lx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const tt=(i/steps)*Math.PI*2*lcm(ra,rb);
+      const x=cx+rx*Math.sin(ra*tt+delta);
+      const y=cy+ry*Math.sin(rb*tt);
+      i===0?Lx.moveTo(x,y):Lx.lineTo(x,y);
+    }
+  }
+  // Glow layers
+  bwPath();Lx.strokeStyle=`hsla(${h},80%,30%,${sa*.22})`;Lx.lineWidth=8;Lx.stroke();
+  bwPath();Lx.strokeStyle=`hsla(${h},90%,62%,${sa*.65})`;Lx.lineWidth=2;Lx.stroke();
+  bwPath();Lx.strokeStyle=`hsla(${h+20},100%,90%,${Math.min(1,sa*1.4)})`;Lx.lineWidth=0.8;Lx.stroke();
+  // Glint dots travelling along the path
+  if(sa>0.12){
+    for(let i=0;i<5;i++){
+      const off=((i/5)+t*0.00015*state.beat)%(1);
+      const tt=off*Math.PI*2*lcm(ra,rb);
+      const x=cx+rx*Math.sin(ra*tt+delta);
+      const y=cy+ry*Math.sin(rb*tt);
+      Lx.beginPath();Lx.arc(x,y,2,0,Math.PI*2);
+      Lx.fillStyle=`hsla(${h+30},100%,95%,0.9)`;Lx.fill();
+    }
+  }
+}
+// ── Waveform ──────────────────────────────────────────────
+function drawWave(data){
+  const W=WC.width,H=WC.height;
+  Wx.clearRect(0,0,W,H);
+  if(!data)return;
+  Wx.beginPath();
+  for(let i=0;i<W;i++){
+    const v=(data[Math.floor((i/W)*data.length)]/128-1)*H*.45;
+    i===0?Wx.moveTo(i,H/2+v):Wx.lineTo(i,H/2+v);
+  }
+  Wx.strokeStyle='rgba(201,168,76,0.6)';Wx.lineWidth=1;Wx.stroke();
+}
+// ── Audio analysis ────────────────────────────────────────
+function getPitch(data,sr){
+  let mx=-1,idx=0;
+  for(let i=2;i<data.length;i++){if(data[i]>mx){mx=data[i];idx=i;}}
+  return(idx*sr)/(data.length*2);
+}
+function getMantra(f){
+  if(f<200)return{sym:'OM',label:'Sri Yantra / Crown'};
+  if(f<310)return{sym:'LAM',label:'Muladhara — Root'};
+  if(f<420)return{sym:'VAM',label:'Svadhisthana — Sacral'};
+  if(f<560)return{sym:'RAM',label:'Manipura — Solar'};
+  if(f<640)return{sym:'YAM',label:'Anahata — Heart'};
+  if(f<760)return{sym:'HAM',label:'Vishuddha — Throat'};
+  if(f<900)return{sym:'OM',label:'Ajna — Third Eye'};
+  return{sym:'AH',label:'Sahasrara — Crown'};
+}
+function getCorr(f,a){
+  if(a<0.02)return{score:0,name:'—'};
+  let best=0,name='—';
+  LIBRARY.forEach(m=>{
+    const s=Math.max(0,1-Math.abs(f-m.freq)/280)*a*1.6;
+    if(s>best){best=s;name=m.name;}
+  });
+  return{score:Math.min(100,Math.round(best*100)),name};
+}
+// ── Main loop ─────────────────────────────────────────────
+function loop(){
+  requestAnimationFrame(loop);
+  T+=0.016;
+
+  if(appMode==='brainwave'&&bwActive&&bwStateData){
+    // Brainwave entrainment mode — drive visuals from binaural beat state
+    smoothAmp+=(0.62-smoothAmp)*.07;
+    curPurity=Math.min(100,Math.round(smoothAmp*115));
+    drawSand(0,smoothAmp,T);
+    drawLaserBrainwave(bwStateData,smoothAmp,T);
+
+  } else if(appMode==='chakra'&&toneActive){
+    // Chakra tone mode — drive visuals from oscillator frequency
+    smoothAmp+=(0.65-smoothAmp)*.08;
+    curPurity=Math.min(100,Math.round(smoothAmp*115));
+    drawSand(toneFreqVal,smoothAmp,T);
+    drawLaser(toneFreqVal,smoothAmp,T);
+
+  } else if(appMode==='measure'&&isListening&&analyser){
+    // Measure mode — mic analysis
+    const fD=new Uint8Array(analyser.frequencyBinCount);
+    const tD=new Uint8Array(analyser.fftSize);
+    analyser.getByteFrequencyData(fD);
+    analyser.getByteTimeDomainData(tD);
+    let sum=0; fD.forEach(v=>sum+=v);
+    const ra=(sum/(fD.length*255))*4;
+    smoothAmp+=(ra-smoothAmp)*.12;
+    const rf=getPitch(fD,audioCtx.sampleRate);
+    if(rf>50&&rf<2000&&smoothAmp>0.018) smoothFreq+=(rf-smoothFreq)*.08;
+    curFreq=Math.round(smoothFreq);
+    curPurity=Math.min(100,Math.round(smoothAmp*115));
+    const m=getMantra(smoothFreq);
+    curMantra=m.sym;
+    const c=getCorr(smoothFreq,smoothAmp);
+    curCorr=c.score; curMatch=c.name;
+    $('mantraDisplay').textContent=m.sym;
+    $('mantraName').textContent=m.label;
+    $('freqDisplay').textContent=curFreq+' Hz';
+    $('purityFill').style.width=curPurity+'%';
+    $('purityScore').textContent=curPurity+'%';
+    $('corrFill').style.width=curCorr+'%';
+    $('corrScore').textContent=curCorr+'%';
+    $('matchName').textContent=curMatch;
+    drawWave(tD);
+    drawSand(smoothFreq,smoothAmp,T);
+    drawLaser(smoothFreq,smoothAmp,T);
+
+  } else {
+    smoothAmp=Math.max(0,smoothAmp*.97);
+    drawSand(110+Math.sin(T*.28)*35,0.05,T);
+    drawLaser(120+Math.sin(T*.18)*55,0.18,T);
+  }
+}
+// ── Mic ───────────────────────────────────────────────────
+async function toggleMic(){isListening?stopMic():await startMic();}
+async function startMic(){
+  try{
+    if(!navigator.mediaDevices?.getUserMedia){toast('Browser does not support mic');return;}
+    toast('Requesting microphone...');
+    micStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')await audioCtx.resume();
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=4096; analyser.smoothingTimeConstant=0.8;
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    isListening=true; sessionActive=true;
+    settleTimer=0; settleState=0;
+    $('micBtn').classList.add('active');
+    $('micIcon').textContent='🔴';
+    $('micHint').textContent='Chant your mantra...';
+    $('waveformBar').classList.add('visible');
+    $('modeStatus').classList.add('active');
+    $('freqDisplay').classList.add('visible');
+    flogStart();
+    toast('Listening — chant OM or any mantra');
+  }catch(e){
+    toast(e.name==='NotAllowedError'?'Mic blocked — allow in browser settings':
+         e.name==='NotFoundError'?'No microphone found':'Mic error: '+e.message);
+  }
+}
+function stopMic(){
+  micStream?.getTracks().forEach(t=>t.stop());
+  audioCtx?.close();
+  micStream=null;audioCtx=null;analyser=null;isListening=false;
+  $('micBtn').classList.remove('active');
+  $('micIcon').textContent='🎙️';
+  $('micHint').textContent='Tap to start';
+  $('waveformBar').classList.remove('visible');
+  flogStop();
+}
+// ── Chakra Tone Engine ─────────────────────────────────────
+function playTone(freq,name,sym){
+  stopTone(false);
+  try{
+    toneACtx=new(window.AudioContext||window.webkitAudioContext)();
+    toneOsc=toneACtx.createOscillator();
+    toneGainNode=toneACtx.createGain();
+    toneOsc.type='sine';
+    toneOsc.frequency.value=freq;
+    const vol=($('toneVol')?.value||28)/100;
+    toneGainNode.gain.setValueAtTime(0,toneACtx.currentTime);
+    toneGainNode.gain.linearRampToValueAtTime(vol,toneACtx.currentTime+0.12);
+    toneOsc.connect(toneGainNode);
+    toneGainNode.connect(toneACtx.destination);
+    toneOsc.start();
+    toneFreqVal=freq; toneActive=true; sessionActive=true;
+    settleTimer=0; settleState=0;
+    curFreq=freq; curMantra=sym; curMatch=name;
+    // Update status bar
+    $('mantraDisplay').textContent=sym;
+    $('mantraName').textContent=name;
+    $('freqDisplay').textContent=freq+' Hz';
+    $('freqDisplay').classList.add('visible');
+    $('modeStatus').classList.add('active');
+    $('corrFill').style.width='100%';
+    $('corrScore').textContent='100%';
+    $('matchName').textContent=name;
+    // Highlight active chakra button
+    document.querySelectorAll('.cBtn').forEach(b=>{
+      b.classList.toggle('playing',parseInt(b.dataset.freq)===freq);
+    });
+    toast('♪ Playing '+freq+' Hz — '+name);
+  }catch(e){ toast('Audio error: '+e.message); }
+}
+function stopTone(updateUI=true){
+  if(toneGainNode&&toneACtx){
+    toneGainNode.gain.linearRampToValueAtTime(0,toneACtx.currentTime+0.1);
+    setTimeout(()=>toneACtx?.close(),150);
+  }
+  toneOsc=null; toneGainNode=null; toneACtx=null;
+  toneActive=false; toneFreqVal=0;
+  if(updateUI){
+    document.querySelectorAll('.cBtn').forEach(b=>b.classList.remove('playing'));
+    smoothAmp=0;
+  }
+}
+// ── Brainwave Binaural Engine ──────────────────────────────
+function playBinaural(stateId){
+  const state=BRAINWAVE_STATES[stateId];
+  if(!state) return;
+  stopBinaural(false);
+  try{
+    bwACtx=new(window.AudioContext||window.webkitAudioContext)();
+    const carrier=bwCarrierHz;   // use user-selected carrier
+    const beat=state.beat;
+    const vol=($('bwVol')?.value||22)/100;
+
+    // Create stereo merger: left=carrier, right=carrier+beat
+    const merger=bwACtx.createChannelMerger(2);
+    const splitter=bwACtx.createChannelSplitter(2);
+
+    bwLeftOsc=bwACtx.createOscillator();
+    bwRightOsc=bwACtx.createOscillator();
+    bwLeftOsc.type='sine'; bwLeftOsc.frequency.value=carrier;
+    bwRightOsc.type='sine'; bwRightOsc.frequency.value=carrier+beat;
+
+    const lGain=bwACtx.createGain(); lGain.gain.value=vol;
+    const rGain=bwACtx.createGain(); rGain.gain.value=vol;
+
+    // Pan left osc fully left, right osc fully right
+    const lPan=bwACtx.createStereoPanner(); lPan.pan.value=-1;
+    const rPan=bwACtx.createStereoPanner(); rPan.pan.value= 1;
+
+    bwGainNode=bwACtx.createGain(); bwGainNode.gain.setValueAtTime(0,bwACtx.currentTime);
+    bwGainNode.gain.linearRampToValueAtTime(1,bwACtx.currentTime+0.3);
+
+    bwLeftOsc.connect(lGain);  lGain.connect(lPan);  lPan.connect(bwGainNode);
+    bwRightOsc.connect(rGain); rGain.connect(rPan);  rPan.connect(bwGainNode);
+    bwGainNode.connect(bwACtx.destination);
+
+    bwLeftOsc.start(); bwRightOsc.start();
+    bwActive=true; bwStateData=state;
+    sessionActive=true; settleTimer=0; settleState=0;
+    curFreq=beat; curMantra=state.icon; curMatch=state.name;
+
+    // Update status bar
+    $('mantraDisplay').textContent=state.icon;
+    $('mantraName').textContent=state.name+' — '+state.range;
+    $('freqDisplay').textContent=beat+' Hz beat';
+    $('freqDisplay').classList.add('visible');
+    $('modeStatus').classList.add('active');
+    $('corrFill').style.width='100%';
+    $('corrScore').textContent='100%';
+    $('matchName').textContent=state.name;
+
+    // Update info panel
+    $('bwInfoIcon').textContent=state.icon;
+    $('bwInfoName').textContent=state.name+' — '+state.range;
+    $('bwInfoName').style.setProperty('--bw-col',state.col);
+    $('bwInfoDesc').textContent=state.desc;
+    $('bwCarrier').textContent=`${carrier} Hz left · ${carrier+beat} Hz right · ${beat} Hz beat · ${state.pattern}`;
+
+    // Highlight active button
+    document.querySelectorAll('.bwBtn').forEach(b=>b.classList.toggle('playing',b.dataset.bw===stateId));
+    toast('🧠 '+state.name+' — '+beat+' Hz binaural beat');
+  }catch(e){ toast('Audio error: '+e.message); }
+}
+function stopBinaural(updateUI=true){
+  if(bwGainNode&&bwACtx){
+    bwGainNode.gain.linearRampToValueAtTime(0,bwACtx.currentTime+0.15);
+    setTimeout(()=>bwACtx?.close(),200);
+  }
+  bwLeftOsc=null; bwRightOsc=null; bwGainNode=null; bwACtx=null;
+  bwActive=false;
+  if(updateUI){
+    bwStateData=null;
+    document.querySelectorAll('.bwBtn').forEach(b=>b.classList.remove('playing'));
+    smoothAmp=0;
+    $('bwInfoIcon').textContent='🧠';
+    $('bwInfoName').textContent='Select a brainwave state';
+    $('bwInfoName').style.setProperty('--bw-col','#b088ff');
+    $('bwInfoDesc').textContent='Binaural beats entrain neural oscillations via the frequency-following response';
+    $('bwCarrier').textContent='Use headphones for binaural effect';
+  }
+}
+function updateBwVol(){
+  if(bwGainNode&&bwACtx){
+    bwGainNode.gain.linearRampToValueAtTime(
+      ($('bwVol').value||22)/100, bwACtx.currentTime+0.05
+    );
+  }
+}
+// Volume live update
+function updateToneVol(){
+  if(toneGainNode&&toneACtx){
+    toneGainNode.gain.linearRampToValueAtTime(
+      ($('toneVol').value||28)/100, toneACtx.currentTime+0.05
+    );
+  }
+}
+// ── Mode switch ────────────────────────────────────────────
+function setMode(mode){
+  appMode=mode;
+  const isMeasure=(mode==='measure');
+  const isChakra=(mode==='chakra');
+  const isBrainwave=(mode==='brainwave');
+  const isNidra=(mode==='nidra');
+  $('modeMeasure').classList.toggle('active', isMeasure);
+  $('modeChakra').classList.toggle('active', isChakra);
+  $('modeBrainwave').classList.toggle('active', isBrainwave);
+  $('modeNidra').classList.toggle('active', isNidra);
+  $('chakraPanel').classList.toggle('visible', isChakra);
+  $('brainwavePanel').classList.toggle('visible', isBrainwave);
+  $('nidraPanel').classList.toggle('visible', isNidra);
+  $('micBtn').parentElement.parentElement.style.display=isMeasure?'':'none';
+  if(!isChakra)  stopTone();
+  if(!isBrainwave&&!isNidra) stopBinaural(false);
+  if(isMeasure)  stopMic();
+  if(!isNidra && nidraRunning) stopNidra();
+  if(isNidra) initNidraPanel();
+  const msgs={
+    measure:'Measure mode — chant into mic',
+    chakra:'Chakra Tone mode — tap a chakra',
+    brainwave:'Brainwave mode — use headphones for binaural',
+    nidra:'Yoga Nidra mode — use headphones · lie down'
+  };
+  toast(msgs[mode]||'');
+}
+// ── Save / Load ───────────────────────────────────────────
+function openSave(){
+  if(!sessionActive){toast('Start a session first');return;}
+  $('sessionName').value=curMantra!=='—'?curMantra+' session':'';
+  $('sessionNotes').value='';
+  $('saveModal').classList.add('open');
+}
+function doSave(){
+  const s={
+    id:Date.now(),
+    name:$('sessionName').value||'Untitled',
+    notes:$('sessionNotes').value,
+    mantra:curMantra,freq:curFreq,purity:curPurity,corr:curCorr,match:curMatch,
+    sandImg:SC.toDataURL('image/jpeg',.75),
+    laserImg:LC.toDataURL('image/jpeg',.75),
+    ts:new Date().toLocaleString()
+  };
+  const all=loadSessions();all.unshift(s);
+  try{localStorage.setItem('cm_sess',JSON.stringify(all.slice(0,50)));}
+  catch{toast('Storage full');return;}
+  $('saveModal').classList.remove('open');
+  toast('Session saved');
+}
+function loadSessions(){try{return JSON.parse(localStorage.getItem('cm_sess')||'[]');}catch{return[];}}
+function openSessions(){
+  const list=loadSessions();
+  $('sessionsList').innerHTML=list.length===0
+    ?'<div class="no-sessions">No sessions yet.<br>Start chanting to create your first mandala.</div>'
+    :list.map(s=>`<div class="session-card">
+        <div class="session-top"><div class="session-mantra">${s.mantra} — ${s.name}</div><div class="session-date">${s.ts}</div></div>
+        <div class="session-meta"><span>Freq: <span>${s.freq} Hz</span></span><span>Purity: <span>${s.purity}%</span></span><span>Match: <span>${s.match}</span></span></div>
+        ${s.notes?`<div style="font-size:.62rem;color:rgba(255,255,255,.35);margin-top:5px;font-style:italic">"${s.notes}"</div>`:''}
+        <div class="session-thumbs"><img src="${s.sandImg}"/><img src="${s.laserImg}"/></div>
+      </div>`).join('');
+  $('sessionsModal').classList.add('open');
+}
+// ── PDF ───────────────────────────────────────────────────
+function doPDF(){
+  const ts=new Date().toLocaleString();
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CymaticaMandala</title>
+<style>body{font-family:Georgia,serif;background:#050810;color:#fff;margin:0;padding:24px}
+h1{color:#f0d080;font-size:1.8rem;text-align:center}
+.sub{text-align:center;color:rgba(201,168,76,.5);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:20px}
+.meta{display:flex;justify-content:space-around;background:rgba(201,168,76,.06);border-radius:8px;padding:14px;margin-bottom:20px}
+.mv{font-size:1.4rem;color:#f0d080;text-align:center}.ml{font-size:.6rem;color:rgba(255,255,255,.35);text-transform:uppercase;text-align:center;margin-top:3px}
+.imgs{display:flex;gap:16px;justify-content:center}img{width:46%;border-radius:8px;border:1px solid rgba(201,168,76,.25)}
+.cap{text-align:center;font-size:.65rem;color:rgba(255,255,255,.35);margin-top:4px}
+.foot{text-align:center;font-size:.6rem;color:rgba(255,255,255,.2);margin-top:20px;border-top:1px solid rgba(201,168,76,.15);padding-top:12px}
+@media print{body{background:#050810!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
+<h1>CymaticaMandala</h1><div class="sub">Sound · Geometry · Healing</div>
+<div class="meta">
+<div><div class="mv">${curMantra}</div><div class="ml">Mantra</div></div>
+<div><div class="mv">${curFreq} Hz</div><div class="ml">Frequency</div></div>
+<div><div class="mv">${curPurity}%</div><div class="ml">Purity</div></div>
+<div><div class="mv">${curCorr}%</div><div class="ml">Match: ${curMatch}</div></div></div>
+<div class="imgs">
+<div><img src="${SC.toDataURL('image/jpeg',.9)}"/><div class="cap">Sand Cymatics</div></div>
+<div><img src="${LC.toDataURL('image/jpeg',.9)}"/><div class="cap">Laser Pattern</div></div>
+</div>
+<div class="foot">Generated: ${ts} · CymaticaMandala</div>
+<script>window.onload=()=>window.print()<\/script></body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast('Allow popups for PDF');return;}
+  w.document.write(html);w.document.close();
+  toast('PDF ready — Print > Save as PDF');
+}
+// ── Reset ─────────────────────────────────────────────────
+function doNew(){
+  stopMic();stopBinaural();sessionActive=false;
+  smoothAmp=0;smoothFreq=120;T=0;
+  curFreq=0;curPurity=0;curCorr=0;curMantra='—';curMatch='—';
+  $('mantraDisplay').textContent='—';$('mantraName').textContent='';
+  $('freqDisplay').textContent='— Hz';$('freqDisplay').classList.remove('visible');
+  $('modeStatus').classList.remove('active');
+  $('waveformBar').classList.remove('visible');
+  $('freqLogger').classList.remove('visible');
+  $('purityFill').style.width='0%';
+  $('purityScore').textContent='0%';$('corrFill').style.width='0%';
+  $('corrScore').textContent='0%';$('matchName').textContent='—';
+  initP();settleState=0;settleTimer=0;toast('Ready for new session');
+}
+// ── Shake / Scatter ────────────────────────────────────────
+let lastShake=0, ax0=0, ay0=0, az0=0;
+
+let scatterStart=0;
+const SCATTER_DUR=5000; // 5s full arc
+
+function scatterParticles(){
+  if(settleState===2) return;
+  settleState=2;
+  scatterStart=Date.now();
+  particles.forEach(p=>{
+    p.vx=(Math.random()-.5)*9;
+    p.vy=(Math.random()-.5)*9;
+    p.hue=Math.random()*360; // full rainbow
+  });
+  const sc=document.getElementById('sandCanvas');
+  sc.classList.add('shake-flash');
+  setTimeout(()=>sc.classList.remove('shake-flash'),520);
+  setTimeout(()=>{ settleState=0; settleTimer=0; initP(); },SCATTER_DUR);
+}
+
+function onMotion(e){
+  const a=e.accelerationIncludingGravity; if(!a) return;
+  const dx=Math.abs((a.x||0)-ax0), dy=Math.abs((a.y||0)-ay0), dz=Math.abs((a.z||0)-az0);
+  ax0=a.x||0; ay0=a.y||0; az0=a.z||0;
+  const total=dx+dy+dz;
+  // ── Nidra Body prefill: collect per-stage motion samples ──
+  // Sensitivity: device flat on chest — breathing gives ~0.1–0.5; repositioning >1.5
+  if(nidraRunning && nidraCurrentStageIdx>=0 && nidraCurrentStageIdx<12){
+    ynStageMotionBuckets[nidraCurrentStageIdx].push(total);
+  }
+  const now=Date.now();
+  if(total>28 && now-lastShake>1400){
+    lastShake=now;
+    toast('📳 Shake! Clearing patterns...');
+    scatterParticles();
+  }
+}
+
+function initShake(){
+  const btn=$('motionBtn');
+  if(!window.DeviceMotionEvent){
+    // Not supported — hide button, no shake
+    return;
+  }
+  const isWebView=/(wv|WebView)/i.test(navigator.userAgent)||
+                  (window.Android!==undefined);
+  if(isWebView){
+    // Android WebView: sensors available without permission, attach directly
+    window.addEventListener('devicemotion', onMotion);
+    return; // no button needed
+  }
+  if(typeof DeviceMotionEvent.requestPermission==='function'){
+    // iOS 13+ — must show button, request on tap
+    btn.classList.add('needed');
+    btn.addEventListener('click',()=>{
+      DeviceMotionEvent.requestPermission().then(r=>{
+        if(r==='granted'){
+          window.addEventListener('devicemotion', onMotion);
+          btn.textContent='📳 Shake active';
+          btn.classList.add('granted');
+          toast('Shake to reset patterns enabled');
+        } else {
+          toast('Motion permission denied');
+        }
+      }).catch(()=>toast('Motion permission error'));
+    });
+  } else {
+    // Android Chrome / other HTTPS browser — no permission needed, attach directly
+    window.addEventListener('devicemotion', onMotion);
+    // Show briefly then auto-hide to confirm it's on
+    btn.textContent='📳 Shake to reset: ON';
+    btn.classList.add('needed');
+    setTimeout(()=>btn.classList.remove('needed'), 3000);
+  }
+}
+// ── Yoga Nidra Session Arc ────────────────────────────────
+// 8-day Bihar-style scripts · 7 sentences per phase · 4 phases
+// Phases: settling(Alpha 10Hz) · deepening(Theta 6Hz) · depth(Theta/Delta 2Hz) · return(Alpha 10Hz)
+
+const YN_SCRIPTS = [
+// DAY 1
+{settling:[
+  "Become aware that you are lying down, and allow the body to become completely still.",
+  "Carry your awareness to the physical body as a whole — feel its weight, its warmth, its contact with the floor.",
+  "Make a sankalpa now — a short, positive resolve — and repeat it three times with full feeling.",
+  "Bring awareness to the right hand thumb... index finger... middle finger... ring finger... little finger... the palm... the back of the hand... the whole right hand.",
+  "Awareness moves to the right forearm... elbow... upper arm... shoulder... armpit... the right side of the chest... right side of the waist... right hip... right thigh...",
+  "Continue: right kneecap... calf... ankle... heel... sole... right big toe... second toe... third... fourth... fifth — the whole right leg.",
+  "Now bring awareness to the left side in the same way — left thumb... fingers... palm... forearm... upper arm... shoulder... left side... hip... thigh... knee... calf... foot... toes — the whole left leg."
+],deepening:[
+  "Awareness moves to the buttocks... lower back... middle back... upper back... the whole back.",
+  "Feel the back of the neck... the scalp... the top of the head... the forehead... the space between the eyebrows.",
+  "Awareness descends to the right eyebrow... left eyebrow... right eye... left eye... right ear... left ear... right cheek... left cheek... nose... upper lip... lower lip... chin... jaw — the whole face.",
+  "Feel the throat... the right collarbone... left collarbone... right chest... left chest... the sternum in the centre.",
+  "Awareness in the navel... the abdomen... the pelvis — the whole front of the body.",
+  "Now become aware of the entire physical body lying on the floor — from the crown of the head to the tips of the toes, one complete, unified field of awareness.",
+  "Repeat your sankalpa three times with deep conviction — this resolve is being sown into the fertile soil of the subconscious mind."
+],depth:[
+  "Experience the sensation of heaviness — the whole body is becoming very heavy, sinking deeply into the floor.",
+  "Now experience the opposite — the sensation of lightness — as if the body is floating, weightless, without boundary.",
+  "Experience cold — a wave of coolness spreading through every cell of the body.",
+  "Now experience warmth — a gentle heat radiating from within, filling every limb.",
+  "Experience pain — somewhere in the body there is discomfort — observe it without resistance.",
+  "Now experience pleasure — a sense of ease, expansion, subtle joy arising from within.",
+  "Hold both sensations simultaneously — pain and pleasure, heaviness and lightness — as the mind rests in the space between opposites."
+],return:[
+  "Become aware of the room around you — the sounds near and far, the feeling of the floor beneath you.",
+  "Bring awareness back to the physical body — feel the right hand... left hand... right foot... left foot.",
+  "Take a slow, deep breath and feel the breath filling the lungs, then releasing completely.",
+  "Repeat your sankalpa three more times — carry it forward as your intention for this day.",
+  "Begin to make small movements — fingers, toes, hands, feet — awakening the body gently.",
+  "In your own time, roll onto your right side and remain for a moment before sitting up slowly.",
+  "Carry the awareness you have touched in this practice with you into the waking world."
+]},
+// DAY 2
+{settling:[
+  "Lie completely still and establish the physical posture — body straight, arms slightly away from the sides, palms facing upward.",
+  "Close the eyes and withdraw the senses inward — become an observer of your own inner landscape.",
+  "Make your sankalpa now — the same resolve each day — three repetitions from the heart.",
+  "Awareness to the right side: right thumb... fingers one by one... palm... wrist... forearm... elbow... upper arm...",
+  "Continue right side: shoulder... shoulder blade... right side of the ribcage... right waist... right hip bone...",
+  "Right thigh front... back... kneecap... behind the knee... shin... calf... ankle... heel... arch... ball of the foot... right big toe... second... third... fourth... fifth.",
+  "Now mirror the entire rotation on the left side — left thumb through left little toe — feel each part distinctly."
+],deepening:[
+  "Awareness rises to both legs together... the entire lower body... the pelvis and hips together.",
+  "The abdomen... the chest... both arms together... the shoulders... the neck.",
+  "The face as a whole — all the features softening simultaneously — forehead, eyes, jaw.",
+  "Now the whole body as a single field — not part by part, but the complete form at once.",
+  "Feel the breath moving within this field — the gentle rise and fall — without controlling it.",
+  "Observe the natural pause at the top of the inhalation... and the natural pause at the bottom of the exhalation.",
+  "Sankalpa — three repetitions — the resolve settling deeper than thought, deeper than feeling."
+],depth:[
+  "Visualise a golden flame burning steadily at the centre of the chest — unwavering, luminous.",
+  "Now a vast, dark sky full of stars — you are lying beneath it, looking upward into infinite depth.",
+  "A still mountain lake — the surface perfectly smooth, perfectly reflecting — complete silence.",
+  "Waves moving slowly toward a shore — each wave arising from the ocean and returning to it.",
+  "A single white lotus opening petal by petal in a dark pool — unhurried, inevitable.",
+  "Your own face, perfectly at rest — seen from a slight distance — serene, without expression.",
+  "The space between your eyebrows — a luminous point — all attention gathered there, perfectly still."
+],return:[
+  "The visualisations dissolve — only the awareness remains, vast and clear.",
+  "Begin to feel the body again — the weight, the warmth, the contact with the surface beneath you.",
+  "Become aware of the sounds in the room — near sounds first, then distant sounds.",
+  "Take three deep, conscious breaths — each one drawing you gently back to full waking awareness.",
+  "Repeat the sankalpa — three times — as you cross back into ordinary consciousness.",
+  "Move the fingers, the toes, the hands — stretch gently if it feels natural.",
+  "Open the eyes softly when ready — carry the stillness you have found."
+]},
+// DAY 3
+{settling:[
+  "Allow the body to settle and become perfectly motionless — this stillness is the foundation of the practice.",
+  "Scan the body briefly from crown to soles — notice any areas of tension and consciously invite them to release.",
+  "Your sankalpa — state it now, three times, with total sincerity — as if planting a seed in deep soil.",
+  "Awareness begins in the right hand: thumb — feel the tip, the pad, the nail — index finger — middle finger — ring finger — little finger.",
+  "Palm of the right hand... back of the hand... wrist joint... radius and ulna of the forearm... elbow joint... bicep and tricep of the upper arm... shoulder joint.",
+  "Move along the right side: right side of the neck... right ear... right side of the scalp... then down: right shoulder blade... right lung area behind the ribs... right kidney region... right hip joint.",
+  "Right upper thigh... quadriceps... hamstring... knee joint... patella... tibia and fibula... gastrocnemius... Achilles tendon... heel... arch of the foot... the five toes of the right foot."
+],deepening:[
+  "Left side now: thumb and four fingers of the left hand... palm... wrist... forearm... elbow... upper arm... shoulder.",
+  "Left side of the neck... left ear... left side of the scalp... left shoulder blade... left ribs... left hip.",
+  "Left thigh... knee... shin and calf... ankle... heel... arch... five toes of the left foot.",
+  "Both feet together... both legs together... both arms together... both shoulders together.",
+  "The whole spine from coccyx to the base of the skull — feel it as a single luminous column.",
+  "The whole face — brow, temples, eyes, nose, cheeks, jaw, chin — all softening together.",
+  "The whole body at once — feel the electromagnetic field extending slightly beyond the skin — the pranamaya kosha, the energy body."
+],depth:[
+  "Pairs of opposites — experience joy... now sorrow... let both arise and pass without identification.",
+  "Experience fear... now courage... neither is you — you are the witness of both.",
+  "Experience contraction... now expansion... the awareness itself remains unchanged.",
+  "Experience weight... now lightness... observe how the mind moves between these poles.",
+  "Experience dullness... now clarity... notice the observer who sees both states equally.",
+  "A rapid sequence of images — a rose — a candle — the moon — an open hand — a river — a fire — let each arise and dissolve without grasping.",
+  "All images released — only the pure witness remains — effortlessly aware, not doing, not grasping."
+],return:[
+  "The depth of the practice is complete — begin the return journey slowly.",
+  "Feel gravity first — the pull of the earth on the physical body — the familiar weight.",
+  "Hear the sounds of the room — external sounds entering awareness without disturbing the inner stillness.",
+  "Breathe consciously — three full breaths — inhale to the top, exhale to the bottom.",
+  "Sankalpa — three repetitions — let it resonate in the newly opened space of the mind.",
+  "Gentle movements — fingers uncurling, toes spreading, shoulders rolling slightly.",
+  "When the eyes open, let them receive light gently — do not rush — the practice continues in waking life."
+]},
+// DAY 4
+{settling:[
+  "Arrive in shavasana — surrender completely to the ground — let every muscle release its hold.",
+  "Feel the earth supporting the full weight of the body — there is nothing to hold, nothing to do.",
+  "Sankalpa — the same resolve — said three times from the deepest part of yourself.",
+  "Rotation of consciousness begins: right little finger... ring finger... middle finger... index finger... thumb... back of the hand... palm... wrist.",
+  "Forearm — inner surface and outer surface both... elbow... upper arm — inner and outer... armpit... right shoulder — front and back.",
+  "Right breast area... right side of the ribcage... right waist... right hip... right groin... right inner thigh... right outer thigh.",
+  "Right knee — front and back... right shin... right calf... right ankle — inner and outer... heel... sole... right toes five — one by one."
+],deepening:[
+  "Left little finger... ring finger... middle finger... index finger... thumb... back of the left hand... palm... wrist.",
+  "Left forearm... elbow... upper arm... armpit... left shoulder — front and back.",
+  "Left breast area... left ribs... left waist... left hip... left groin... left thigh inside and outside.",
+  "Left knee — front and back... left shin... left calf... ankle inner and outer... heel... sole... five toes.",
+  "Both feet... both calves... both knees... both thighs... the pelvis... the buttocks... the sacrum.",
+  "The lower back... middle back... upper back... the whole spine... both shoulder blades... the back of the neck.",
+  "The back of the head... the crown... the forehead... the face — jaw releasing, tongue releasing, eyes releasing."
+],depth:[
+  "You are standing at the edge of a vast, calm ocean — the water is warm and luminous.",
+  "You step in — the water receives you — buoyancy lifts you — you float effortlessly on the surface.",
+  "The ocean below you is infinitely deep — and yet you rest safely on its surface.",
+  "A single tone is rising from the depth of the ocean — low, resonant, continuous — feel it in the bones.",
+  "The tone fills the whole body — every cell is vibrating at this frequency — complete resonance.",
+  "The ocean, the tone, the body and the awareness are no longer separate — they have become one field.",
+  "Rest here — in this undivided field — without thought, without effort, without boundary."
+],return:[
+  "Slowly the ocean becomes less vivid — the body becomes distinct again — solid, warm, present.",
+  "Feel the floor. Feel the room temperature on the skin. Hear the nearest sound.",
+  "The body is awake and refreshed — as if emerging from a long, healing sleep.",
+  "Sankalpa — three repetitions — water poured into the deep well of the subconscious.",
+  "Begin micro-movements — the smallest possible stirrings — fingertip by fingertip.",
+  "Stretch the arms overhead if comfortable — a full-body yawn — the body celebrating its return.",
+  "Roll to the right side — pause — press up to sitting — eyes remain soft and inward for one more breath."
+]},
+// DAY 5
+{settling:[
+  "Lie down in shavasana and make the final adjustments — nothing will move again until the end.",
+  "Let the breath settle into its natural rhythm — do not regulate it — simply observe.",
+  "Your sankalpa: three repetitions — the same words each session — water wearing stone.",
+  "Awareness in the right hand thumb — feel the pulse inside the thumb — index finger — middle finger — ring — little finger.",
+  "Right palm... right wrist... right elbow... right shoulder... right side of the neck... right ear... right eye... right nostril... right cheek... right corner of the mouth.",
+  "Back to the right shoulder: right armpit... right breast... right nipple... right ribs... right navel level... right hip crest... right groin.",
+  "Right thigh... right knee... right shin bone... right ankle... right heel... right sole... right big toe to fifth toe."
+],deepening:[
+  "Left thumb... index... middle... ring... little finger... left palm... wrist... elbow... shoulder.",
+  "Left side of the neck... left ear... left eye... left nostril... left cheek... left corner of the mouth.",
+  "Left armpit... left breast... left ribs... left side of the navel... left hip... left groin.",
+  "Left thigh... knee... shin... ankle... heel... sole... five toes.",
+  "Both legs together as one unit... both arms together as one unit... the whole trunk as one unit.",
+  "The face as one unit — all details dissolving — just an oval of awareness.",
+  "The whole body as one unified field of sensation — no parts, only wholeness. Sankalpa — three times."
+],depth:[
+  "Become aware of the breath — count backwards from 27 — 27 with inhalation... 27 with exhalation... 26 with inhalation...",
+  "If the count is lost, return to 27 without frustration — the instruction is the anchor, not the count itself.",
+  "Let the count dissolve now — only the breath remains — and behind the breath, pure witnessing awareness.",
+  "Visualise a vast blue sky — cloudless, boundless, utterly still — you are not in the sky — you are the sky.",
+  "A single bird appears in the distance — a dark speck — it crosses the sky slowly — and is gone.",
+  "The sky remains exactly as it was — untouched by the bird's passage — the mind is like this sky.",
+  "Rest as the sky — aware of everything arising within it — changed by nothing — the pure witness."
+],return:[
+  "The sky image fades — the breath returns to the foreground of awareness.",
+  "Feel the body from within — the organs, the warmth of blood moving, the slight weight of the eyelids.",
+  "External sounds enter awareness — let them land without response — just hearing.",
+  "Three breaths — slow and deliberate — each one gently brightening the mind.",
+  "Sankalpa — three times — the intention crystallising in the renewed clarity of the mind.",
+  "Fingers and toes — small, deliberate movements — reconnecting the will to the body.",
+  "The session is complete — take one final moment of gratitude for the practice before opening the eyes."
+]},
+// DAY 6
+{settling:[
+  "Take up shavasana — let the ground completely receive the body — the surrender is total.",
+  "Scan from crown to soles in one sweeping arc of attention — note without judging.",
+  "Sankalpa — three repetitions — this is the most important act of the session.",
+  "Right thumb tip... right index fingertip... right middle fingertip... ring fingertip... little fingertip.",
+  "The whole right hand as a unit — right wrist — right forearm — right elbow — right upper arm.",
+  "Right shoulder joint — right collarbone — right side of chest — right floating rib — right side of abdomen.",
+  "Right hip — right greater trochanter — right outer thigh — right inner thigh — right knee — right calf — right heel — right sole — right toes one by one."
+],deepening:[
+  "Left fingertips — five of them — left hand as a unit — left wrist — left forearm — left elbow — left upper arm.",
+  "Left shoulder — left collarbone — left chest — left ribs — left abdomen — left hip — left thigh — left knee.",
+  "Left calf — left heel — left sole — left toes, one by one.",
+  "The sacrum and coccyx... the five lumbar vertebrae... twelve thoracic vertebrae... seven cervical vertebrae... the skull.",
+  "The root of the tongue... the soft palate... the back of the throat... the space behind the eyes.",
+  "The crown of the head... the whole brain bathed in cerebrospinal fluid... the whole nervous system from crown to soles.",
+  "The energy body — the pranamaya kosha — the gentle hum of life — feel it shimmering at the edge of the skin. Sankalpa — three times."
+],depth:[
+  "A childhood memory surfaces — observe it as you would observe a scene through a window — without entering.",
+  "Now an image of a vast wheat field in late afternoon sun — the stalks moving in a slow wave — golden.",
+  "A dark room with one candle — the flame perfectly still — the surrounding dark emphasising its light.",
+  "A human hand, palm upward, completely open and relaxed — your own hand, utterly at rest.",
+  "An empty temple — stone columns — filtered light — the smell of sandalwood — absolute silence.",
+  "The night sky seen from a mountaintop — the Milky Way stretched overhead — the immensity of space.",
+  "All images dissolve — only awareness aware of itself — no object, no subject — just this."
+],return:[
+  "Pure awareness begins to re-enter the body — like light entering a room as a curtain is drawn back.",
+  "Feel the physical sensations returning — pressure, temperature, texture — welcome them back.",
+  "Sounds of the room — welcome them too — the world is calling the awareness home.",
+  "Three slow, deep breaths — each one an act of conscious re-embodiment.",
+  "Sankalpa — three times — the final act of the inner journey before the outer world resumes.",
+  "Gentle stirring — feet, hands, head rolling side to side — the body warming back to full function.",
+  "Roll right, pause, sit up — and for this one moment before opening the eyes fully, carry the silence."
+]},
+// DAY 7
+{settling:[
+  "In shavasana — close the eyes and seal the sense doors — touch, sound, sight all withdrawn inward.",
+  "Feel the body from the inside — the heaviness — the warmth — the subtle vibration of being alive.",
+  "Your sankalpa — three repetitions — this intention is a thread connecting every session.",
+  "Rapid rotation now — right hand: five fingertips simultaneously — palm — back of hand — wrist — forearm.",
+  "Elbow — upper arm — shoulder — right side of the neck — right ear — right side of the face — all at once.",
+  "Right shoulder to right hip in one sweep — right hip to right ankle — right ankle to five toes.",
+  "Now left hand: five fingertips — palm — back — wrist — forearm — elbow — upper arm — shoulder — left side — hip — ankle — five toes. Both legs. Both arms. Whole body."
+],deepening:[
+  "The body is now mapped — every part known to awareness — lay the map aside and feel the whole.",
+  "Bring attention to the natural breath — without controlling it — simply the witness.",
+  "Watch three complete breath cycles — the arising of inhalation, its fullness, its release — the arising of exhalation, its fullness, its release — the pause.",
+  "Now watch the pause at the end of exhalation — kumbhaka — this is the gap — the space between states.",
+  "The gap is where Yoga Nidra lives — not in sleep, not in waking — but in the space between.",
+  "Rest in this gap — it may be one second or less — do not manufacture it — only observe it.",
+  "Sankalpa — three times — poured into this gap — where the mind is most receptive."
+],depth:[
+  "Experience the sensation of being very small — the body contracts to a point — a single atom of awareness.",
+  "Now expand — the awareness expands beyond the body — beyond the room — beyond the building.",
+  "Keep expanding — awareness filling the city — the country — the continent.",
+  "The whole planet held within awareness — a blue sphere turning slowly in infinite black space.",
+  "Keep expanding — the solar system — the galaxy — all of it held easily in pure awareness.",
+  "Now contract back — galaxy to planet to country to room to body — in a single instant.",
+  "Rest at the centre — in the body, in the room, on the earth — the journey complete — the witness unchanged."
+],return:[
+  "The vast space of the practice begins to settle back into the personal — the room, the floor, this body.",
+  "Become aware of the breath moving in the nostrils — cool on the inhalation, warm on the exhalation.",
+  "Hear the sounds — near and far — everything present, everything in its place.",
+  "Sankalpa — three times — the journey of eight days has made these words a living reality.",
+  "Deepen the breath intentionally — fill the lungs completely — hold briefly — release fully.",
+  "Move the body — whatever movement it wants — trust it — this is the body welcoming itself back.",
+  "Open the eyes — softly — let light enter without haste — remain with the practice for one final breath before resuming ordinary life."
+]},
+// DAY 8
+{settling:[
+  "This is the eighth session — the cycle completes today and begins again — each repetition goes deeper.",
+  "Establish shavasana with full intention — the body is the instrument of the practice — honour it with stillness.",
+  "Sankalpa — three times — this resolve has been planted seven times before — today it takes deeper root.",
+  "Full body rotation — rapidly and precisely — right hand five fingers... palm... wrist... forearm... elbow... upper arm... shoulder.",
+  "Right neck... right face... right chest... right abdomen... right hip... right thigh... right knee... right shin and calf... right foot... five toes.",
+  "Left hand five fingers... palm... wrist... forearm... elbow... upper arm... shoulder... left neck... face... chest... abdomen... hip... thigh... knee... shin and calf... foot... five toes.",
+  "Both feet and legs together... both hands and arms together... the trunk front and back... the head and face... the whole body as one indivisible field."
+],deepening:[
+  "Rest in the whole body — allow the awareness to settle like sediment in still water.",
+  "Feel the breath without controlling it — the body breathes of its own accord — trust this.",
+  "Bring awareness to the heartbeat — feel it in the chest — then also in the fingertips — then everywhere simultaneously.",
+  "The whole body is pulsing — the heart's rhythm permeating every cell — life beating life.",
+  "This pulsing is the carrier of prana — the same force that moves the stars moves in this body.",
+  "Rest in this recognition — you are not separate from the life that moves through all things.",
+  "Sankalpa — three times — from this place of deep recognition — let it be received fully."
+],depth:[
+  "The practice has deepened over eight days — the mind recognises this state more readily now.",
+  "Allow whatever arises to arise — thought, image, sensation, emotion — the witness is undisturbed.",
+  "A final visualisation: imagine a seed — small, complete, dormant — containing within it the whole tree.",
+  "Your sankalpa is this seed — already it contains its own fulfilment — it needs only time and practice.",
+  "Feel the seed resting in the soil of the subconscious — nourished by each session — beginning to stir.",
+  "The cycle of eight days has prepared the ground — on day one again, the planting will go deeper still.",
+  "Rest now in pure awareness — no image, no instruction — simply this — the ground state of being."
+],return:[
+  "The depth of the eighth session is complete — the return is slow and deliberate.",
+  "Feel the body — every part of it — loved, rested, refreshed — an instrument tuned by practice.",
+  "Sounds of the room return — external reality gently reasserting itself.",
+  "Three deep breaths — each one full and conscious — the waking mind brightening.",
+  "Sankalpa — final three repetitions of the cycle — the resolve that has grown stronger with each session.",
+  "Move the body fully now — stretch, yawn, roll — let the energy of practice flow into every limb.",
+  "Open the eyes — the cycle is complete — tomorrow, day one again — the spiral continues deeper."
+]}
+];
+
+// Session arc: phase proportions for 30/45/60 min
+// settling 15% · deepening 20% · depth 50% · return 15%
+const YN_PHASES=[
+  {key:'settling',  label:'Settling',   bwState:'alpha', pct:0.15, badgeClass:'nidra-phase-settling',  hz:'Alpha 10 Hz',   phaseColor:'#44ddcc'},
+  {key:'deepening', label:'Deepening',  bwState:'theta', pct:0.20, badgeClass:'nidra-phase-deepening', hz:'Theta 6 Hz',    phaseColor:'#b088ff'},
+  {key:'depth',     label:'Depth',      bwState:'delta', pct:0.50, badgeClass:'nidra-phase-depth',     hz:'Delta 2 Hz',    phaseColor:'#8899ff'},
+  {key:'return',    label:'Return',     bwState:'alpha', pct:0.15, badgeClass:'nidra-phase-return',    hz:'Alpha 10 Hz',   phaseColor:'#44ddcc'},
+];
+// 12 Bihar stages: [fullName, phaseIdx, pctStart, pctEnd]
+// phaseIdx: 0=settling 1=deepening 2=depth 3=return
+const YN_STAGE_DEFS=[
+  ['Physical Relaxation', 0, 0.00, 0.40],
+  ['Sankalpa',            0, 0.40, 0.60],
+  ['Body Rotation',       0, 0.60, 1.00],
+  ['Breath Awareness',    1, 0.00, 0.50],
+  ['Sensations',          1, 0.50, 1.00],
+  ['Rapid Visualisation', 2, 0.00, 0.22],
+  ['Pairs of Opposites',  2, 0.22, 0.50],
+  ['Symbol Sequence',     2, 0.50, 0.75],
+  ['Sankalpa II',         2, 0.75, 1.00],
+  ['Light Rotation',      3, 0.00, 0.40],
+  ['Externalisation',     3, 0.40, 0.75],
+  ['Final Awakening',     3, 0.75, 1.00],
+];
+// 3-axis rating system: Body (soma), Mind (manas), Image (chitra)
+// Each axis: 0=unset, 1–5 mapped to anchored descriptors
+// Axis colors
+const AX_COL={body:'#44ddcc',mind:'#b088ff',image:'#f0d080'};
+const AX_ICON={body:'🫧',mind:'🌫',image:'🎇'};
+const AX_ANCHORS={
+  body:['','Fully physical','Body heavy','Limbs fading','Body vague','Dissolved / no body'],
+  mind:['','Constant chatter','Thoughts slowing','Gaps appearing','Near-silent','Pure witness — no thoughts'],
+  image:['','No impressions','Vague flickers','Clear imagery','Vivid, autonomous','Cinematic — uncontrolled']
+};
+// Storage: array of {body,mind,image} per stage; 0 = unset slider
+let nidraStageRatings=Array.from({length:12},()=>({body:0,mind:0,image:0}));
+
+function axisComposite(r){ // r = {body,mind,image}
+  const vals=[r.body,r.mind,r.image].filter(v=>v>0);
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+}
+function compositeColor(avg){
+  if(!avg) return 'rgba(255,255,255,.08)';
+  if(avg<2)  return '#ff4444';
+  if(avg<3)  return '#ff8844';
+  if(avg<3.8)return '#c9a84c';
+  if(avg<4.6)return '#44cc88';
+  return '#b088ff';
+}
+const PHASE_STRIP_COL=[
+  'rgba(68,221,204,',   // 0 settling
+  'rgba(176,136,255,',  // 1 deepening
+  'rgba(136,153,255,',  // 2 depth
+  'rgba(68,221,204,',   // 3 return
+];
+const PHASE_PILL_COL=['#44ddcc','#b088ff','#8899ff','#44ddcc'];
+const PHASE_NAMES    =['Settling','Deepening','Depth','Return'];
+
+let nidraRunning=false;
+let nidraTotalSec=1800;  // default 30 min
+let nidraElapsedSec=0;
+let nidraTimer=null;
+let nidraDay=1;
+let nidraMuted=false;
+let nidraCurrentPhaseIdx=0;
+let nidraCurrentSentenceIdx=0;
+let nidraPhaseSchedule=[];  // [{phaseIdx, sentenceTimes:[sec,...]}]
+let nidraNextSpeakSec=0;
+let nidraVoices=[];
+// Stage tracking
+let nidraStageSchedule=[];   // [{idx,name,phaseIdx,startSec,endSec}]
+let nidraCurrentStageIdx=-1;
+// Per-stage motion accumulator: array of 12 buckets, each holding raw delta samples
+// Used to auto-prefill Body axis in post-session review
+let ynStageMotionBuckets=Array.from({length:12},()=>[]);
+
+function initNidraPanel(){
+  // Determine day from date (cycles 1–8)
+  const dayOfYear=Math.floor((Date.now()-new Date(new Date().getFullYear(),0,0))/(1000*60*60*24));
+  nidraDay=((dayOfYear-1)%8)+1;
+  $('nidraDayLabel').textContent='Day '+nidraDay+' of 8';
+
+  // Load voices
+  nidraVoices=window.speechSynthesis.getVoices();
+  if(!nidraVoices.length){
+    window.speechSynthesis.onvoiceschanged=()=>{nidraVoices=window.speechSynthesis.getVoices();};
+  }
+}
+
+function buildNidraSchedule(totalSec){
+  // Build speak times for all 28 sentences across 4 phases
+  const schedule=[];
+  let cursor=0;
+  YN_PHASES.forEach((phase,pIdx)=>{
+    const phaseDur=Math.round(totalSec*phase.pct);
+    const interval=Math.floor(phaseDur/7);
+    const times=[];
+    for(let i=0;i<7;i++){
+      times.push(cursor+Math.round(interval*(i+0.5)));
+    }
+    schedule.push({phaseIdx:pIdx,sentenceTimes:times,phaseDur,phaseStart:cursor});
+    cursor+=phaseDur;
+  });
+  return schedule;
+}
+function buildStageSchedule(phaseSchedule){
+  return YN_STAGE_DEFS.map((def,i)=>{
+    const [name,phaseIdx,pctStart,pctEnd]=def;
+    const ps=phaseSchedule[phaseIdx];
+    return{
+      idx:i, name, phaseIdx,
+      startSec:ps.phaseStart+Math.round(ps.phaseDur*pctStart),
+      endSec:  ps.phaseStart+Math.round(ps.phaseDur*pctEnd),
+    };
+  });
+}
+function initStageStrip(){
+  const strip=$('ynStageStrip');
+  strip.innerHTML='';
+  YN_STAGE_DEFS.forEach((def,i)=>{
+    const b=document.createElement('div');
+    b.className='yn-s-block';
+    b.dataset.idx=i;
+    b.dataset.phase=def[1];
+    b.title='Stage '+(i+1)+': '+def[0];
+    strip.appendChild(b);
+  });
+  nidraCurrentStageIdx=-1;
+  $('ynStageNum').textContent='—';
+  $('ynStageName').textContent='';
+}
+function updateStageIndicator(){
+  // Find current stage (last one whose startSec <= elapsed)
+  let newIdx=-1;
+  for(let i=nidraStageSchedule.length-1;i>=0;i--){
+    if(nidraElapsedSec>=nidraStageSchedule[i].startSec){newIdx=i;break;}
+  }
+  if(newIdx===nidraCurrentStageIdx) return;
+  nidraCurrentStageIdx=newIdx;
+  if(newIdx>=0){
+    $('ynStageNum').textContent=newIdx+1;
+    $('ynStageName').textContent=nidraStageSchedule[newIdx].name;
+  }
+  // Repaint strip blocks
+  document.querySelectorAll('.yn-s-block').forEach((b,i)=>{
+    const ph=parseInt(b.dataset.phase);
+    const base=PHASE_STRIP_COL[ph];
+    b.classList.toggle('active',i===newIdx);
+    b.classList.toggle('done',i<newIdx);
+    if(i<newIdx){
+      b.style.background=base+'.4)';
+      b.style.borderColor=base+'.3)';
+      b.style.boxShadow='';
+      b.style.color=base+'.7)';
+    } else if(i===newIdx){
+      b.style.background=base+'.85)';
+      b.style.borderColor=base+'1)';
+      b.style.boxShadow='0 0 7px '+base+'.5)';
+      b.style.color=base+'1)';
+    } else {
+      b.style.background='rgba(255,255,255,.05)';
+      b.style.borderColor='rgba(255,255,255,.06)';
+      b.style.boxShadow='';
+      b.style.color='transparent';
+    }
+  });
+}
+
+function getBestVoice(){
+  // Prefer a slow, clear English voice
+  const prefs=['Samantha','Karen','Moira','Daniel','Alex','Google UK English Female','Google US English'];
+  for(const pref of prefs){
+    const v=nidraVoices.find(x=>x.name.includes(pref));
+    if(v) return v;
+  }
+  return nidraVoices.find(v=>v.lang&&v.lang.startsWith('en'))||nidraVoices[0]||null;
+}
+
+function nidraSay(text){
+  if(nidraMuted) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=0.80;
+  u.pitch=0.88;
+  u.volume=0.90;
+  const v=getBestVoice();
+  if(v) u.voice=v;
+  window.speechSynthesis.speak(u);
+}
+
+function startNidra(){
+  if(nidraRunning) return;
+  // Build schedules
+  nidraPhaseSchedule=buildNidraSchedule(nidraTotalSec);
+  nidraStageSchedule=buildStageSchedule(nidraPhaseSchedule);
+  nidraElapsedSec=0;
+  nidraCurrentPhaseIdx=0;
+  nidraCurrentSentenceIdx=0;
+  nidraCurrentStageIdx=-1;
+  nidraStageRatings=Array.from({length:12},()=>({body:0,mind:0,image:0}));
+  ynStageMotionBuckets=Array.from({length:12},()=>[]);
+  nidraRunning=true;
+
+  // Show active panel
+  $('nidraSetup').style.display='none';
+  $('nidraReview').classList.remove('visible');
+  $('nidraActive').classList.add('visible');
+  $('nidraActiveDayLabel').textContent='Day '+nidraDay+' · Settling';
+
+  // Init stage strip
+  initStageStrip();
+
+  // Start binaural for settling phase (Alpha)
+  playBinaural('alpha');
+  sessionActive=true;
+
+  // Set first speak time
+  nidraNextSpeakSec=nidraPhaseSchedule[0].sentenceTimes[0];
+
+  // Tick every second
+  nidraTimer=setInterval(nidraTick,1000);
+  updateNidraUI();
+}
+
+function nidraTick(){
+  nidraElapsedSec++;
+  // Check if we need to switch phase
+  updateNidraPhase();
+  // Update stage indicator
+  updateStageIndicator();
+  // Check if we need to speak
+  if(nidraElapsedSec>=nidraNextSpeakSec){
+    speakNidraInstruction();
+  }
+  // Update UI
+  updateNidraUI();
+  // End session
+  if(nidraElapsedSec>=nidraTotalSec){
+    endNidra();
+  }
+}
+
+function updateNidraPhase(){
+  // Find which phase we're in based on elapsed time
+  let newPhaseIdx=0;
+  nidraPhaseSchedule.forEach((ps,i)=>{
+    if(nidraElapsedSec>=ps.phaseStart) newPhaseIdx=i;
+  });
+
+  if(newPhaseIdx!==nidraCurrentPhaseIdx){
+    nidraCurrentPhaseIdx=newPhaseIdx;
+    nidraCurrentSentenceIdx=0;
+    const phase=YN_PHASES[nidraCurrentPhaseIdx];
+    // Switch binaural
+    playBinaural(phase.bwState);
+    $('nidraActiveDayLabel').textContent='Day '+nidraDay+' · '+phase.label;
+    toast('🧘 '+phase.label+' phase — '+phase.hz);
+  }
+}
+
+function speakNidraInstruction(){
+  const ps=nidraPhaseSchedule[nidraCurrentPhaseIdx];
+  const phase=YN_PHASES[nidraCurrentPhaseIdx];
+  const script=YN_SCRIPTS[nidraDay-1][phase.key];
+
+  // Which sentence within this phase?
+  let sentIdx=ps.sentenceTimes.indexOf(nidraNextSpeakSec);
+  if(sentIdx<0){
+    // Find closest
+    sentIdx=ps.sentenceTimes.findIndex(t=>t>=nidraElapsedSec);
+    if(sentIdx<0) sentIdx=6;
+  }
+  sentIdx=Math.min(sentIdx,6);
+
+  const text=script[sentIdx];
+  $('nidraInstruction').textContent='"'+text+'"';
+  nidraSay(text);
+
+  // Set next speak time
+  const allTimes=[];
+  nidraPhaseSchedule.forEach(p=>p.sentenceTimes.forEach(t=>allTimes.push(t)));
+  const nextT=allTimes.find(t=>t>nidraElapsedSec);
+  nidraNextSpeakSec=nextT||nidraTotalSec+1;
+}
+
+function updateNidraUI(){
+  const phase=YN_PHASES[nidraCurrentPhaseIdx];
+  const ps=nidraPhaseSchedule[nidraCurrentPhaseIdx];
+
+  // Phase badge
+  const badge=$('nidraPhaseBadge');
+  badge.className='nidra-phase-badge '+phase.badgeClass;
+  badge.textContent=phase.label+' — '+phase.hz;
+
+  // Progress bar
+  const pct=(nidraElapsedSec/nidraTotalSec)*100;
+  $('nidraProgressFill').style.width=pct+'%';
+
+  // Phase bar
+  const phaseElapsed=nidraElapsedSec-ps.phaseStart;
+  const phasePct=Math.min(100,(phaseElapsed/ps.phaseDur)*100);
+  const pb=$('nidraPhaseBar');
+  pb.style.background=phase.phaseColor+'22';
+  $('nidraPhaseBar').querySelector?.(null);
+  const pf=$('nidraPhaseBar').firstElementChild;
+  if(pf){pf.style.width=phasePct+'%';pf.style.background=phase.phaseColor;}
+
+  // Timer
+  const rem=nidraTotalSec-nidraElapsedSec;
+  const m=Math.floor(rem/60),s=rem%60;
+  $('nidraTimeLabel').textContent=m+':'+(s<10?'0':'')+s;
+}
+
+function stopNidra(){
+  nidraRunning=false;
+  clearInterval(nidraTimer);
+  nidraTimer=null;
+  window.speechSynthesis.cancel();
+  stopBinaural();
+  $('nidraActive').classList.remove('visible');
+  $('nidraReview').classList.remove('visible');
+  $('nidraSetup').style.display='';
+  $('nidraInstruction').textContent='Preparing...';
+  $('nidraProgressFill').style.width='0%';
+  toast('Yoga Nidra session ended');
+}
+
+function endNidra(){
+  nidraRunning=false;
+  clearInterval(nidraTimer);
+  nidraTimer=null;
+  window.speechSynthesis.cancel();
+  stopBinaural();
+  $('nidraProgressFill').style.width='100%';
+  $('nidraTimeLabel').textContent='0:00';
+  $('nidraInstruction').textContent='"The session is complete. Rest in the stillness before returning."';
+  nidraSay('The session is complete. Rest in the stillness before returning.');
+  toast('🧘 Yoga Nidra complete');
+  // After 10s rest, hide active panel and show review
+  setTimeout(()=>{
+    $('nidraActive').classList.remove('visible');
+    showNidraReview();
+  },10000);
+}
+// ── Yoga Nidra Review System ──────────────────────────────
+function showNidraReview(){
+  buildReviewGrid();
+  prefillBodyFromMotion();
+  $('reviewSubtitle').textContent=
+    'Day '+nidraDay+' · '+(nidraTotalSec/60)+' min · Slide each axis 0–5 per stage';
+  $('reviewNotes').value='';
+  $('nidraReview').classList.add('visible');
+}
+
+function buildReviewGrid(){
+  const grid=$('reviewGrid');
+  grid.innerHTML='';
+  YN_STAGE_DEFS.forEach((def,i)=>{
+    const [name,phaseIdx]=def;
+    const pc=PHASE_PILL_COL[phaseIdx];
+    const pn=PHASE_NAMES[phaseIdx];
+
+    const card=document.createElement('div');
+    card.className='rsc';
+    card.id='rsc-'+i;
+
+    // Build 3 slider rows
+    const axes=['body','mind','image'];
+    const sliderRows=axes.map(ax=>`
+      <div class="rsc-axis">
+        <span class="rsc-axis-icon">${AX_ICON[ax]}</span>
+        <div class="rsc-axis-track" style="--ax-col:${AX_COL[ax]}">
+          <input type="range" min="0" max="5" step="1" value="0"
+            id="rsl-${i}-${ax}" data-stage="${i}" data-ax="${ax}"
+            title="${ax}: ${AX_ANCHORS[ax].slice(1).join(' → ')}">
+        </div>
+        <span class="rsc-axis-val" id="rsv-${i}-${ax}" style="color:${AX_COL[ax]}">—</span>
+      </div>`).join('');
+
+    card.innerHTML=`
+      <div class="rsc-top">
+        <span class="rsc-num">S${i+1}</span>
+        <span class="rsc-phase-pill" style="background:${pc}22;color:${pc};border:1px solid ${pc}44">${pn}</span>
+      </div>
+      <div class="rsc-name">${name}</div>
+      <div class="rsc-sliders">${sliderRows}</div>`;
+
+    grid.appendChild(card);
+
+    // Wire slider events
+    axes.forEach(ax=>{
+      const sl=card.querySelector(`#rsl-${i}-${ax}`);
+      sl.addEventListener('input',()=>setAxisRating(i,ax,parseInt(sl.value)));
+    });
+  });
+}
+
+// ── Body axis auto-prefill from device motion ─────────────
+// Calibrated for phone lying flat on chest in shavasana.
+// Median delta used (robust to single cough/adjustment spike).
+// Scale: quiet breathing ~0.1–0.4 → score 4–5; mild movement ~0.8–1.5 → score 2–3.
+function motionToBodyScore(samples){
+  if(!samples||samples.length<10) return 0; // too few samples — don't guess
+  const sorted=[...samples].sort((a,b)=>a-b);
+  const median=sorted[Math.floor(sorted.length/2)]; // use median, not mean
+  // Lower bound: phone on flat surface → near-zero delta, no breathing oscillation.
+  // Chest breathing always produces median ≥ ~0.12 even in deep stillness.
+  // Below 0.10 → surface placement detected → do not prefill, let user fill manually.
+  if(median<0.10) return 0;
+  if(median<0.30) return 5; // body dissolved — only breathing motion
+  if(median<0.55) return 4; // limbs fading — breathing dominant
+  if(median<1.00) return 3; // body vague — light movement
+  if(median<1.80) return 2; // body heavy — noticeable shifting
+  return 1;                  // fully physical — frequent shifting
+}
+function prefillBodyFromMotion(){
+  let prefilled=0;
+  ynStageMotionBuckets.forEach((samples,i)=>{
+    const score=motionToBodyScore(samples);
+    if(!score) return;
+    const sl=document.getElementById('rsl-'+i+'-body');
+    if(sl){
+      sl.value=score;
+      setAxisRating(i,'body',score);
+      prefilled++;
+    }
+  });
+  if(prefilled>0) toast('🫧 Body prefilled from motion ('+prefilled+'/12 stages)');
+}
+
+function setAxisRating(stageIdx,axis,val){
+  nidraStageRatings[stageIdx][axis]=val;
+  // Update value label
+  const label=$(`rsv-${stageIdx}-${axis}`);
+  if(label) label.textContent=val>0?val:'—';
+  // Compute composite and update card border
+  const r=nidraStageRatings[stageIdx];
+  const avg=axisComposite(r);
+  const col=compositeColor(avg);
+  const card=$('rsc-'+stageIdx);
+  if(avg>0){
+    card.style.borderColor=col+'66';
+    card.classList.add('rated');
+  }
+}
+
+function saveNidraReview(){
+  const composites=nidraStageRatings.map(r=>axisComposite(r));
+  const rated=composites.filter(v=>v>0);
+  const avg=rated.length?(rated.reduce((a,b)=>a+b,0)/rated.length).toFixed(1):'N/A';
+  const review={
+    id:Date.now(),
+    day:nidraDay,
+    duration:nidraTotalSec/60,
+    date:new Date().toLocaleString(),
+    avgRating:avg,
+    ratedCount:rated.length,
+    notes:$('reviewNotes').value.trim(),
+    stages:YN_STAGE_DEFS.map((def,i)=>({
+      stage:i+1, name:def[0], phaseIdx:def[1],
+      body:nidraStageRatings[i].body,
+      mind:nidraStageRatings[i].mind,
+      image:nidraStageRatings[i].image,
+      composite:composites[i],
+      // legacy field for backward compat with old log cards
+      rating: composites[i]>0 ? Math.round(composites[i]) : 0,
+      label: composites[i]>0
+        ? (composites[i]<2?'Restless':composites[i]<3?'Light':composites[i]<4?'Calm':composites[i]<4.6?'Deep':'Very Deep')
+        : 'Unrated'
+    }))
+  };
+  const all=loadNidraReviews();
+  all.unshift(review);
+  try{ localStorage.setItem('cm_yn_reviews',JSON.stringify(all.slice(0,60))); }
+  catch{ toast('Storage full'); return; }
+  $('nidraReview').classList.remove('visible');
+  $('nidraSetup').style.display='';
+  toast('✦ Review saved — Day '+nidraDay+' · avg '+avg);
+}
+
+function dismissReview(){
+  $('nidraReview').classList.remove('visible');
+  $('nidraSetup').style.display='';
+}
+
+function loadNidraReviews(){
+  try{ return JSON.parse(localStorage.getItem('cm_yn_reviews')||'[]'); }
+  catch{ return[]; }
+}
+
+function openNidraLog(){
+  const all=loadNidraReviews();
+  const list=$('ynLogList');
+  if(!all.length){
+    list.innerHTML='<div class="no-sessions">No reviews yet.<br>Complete a session and tap ✦ Save Review.</div>';
+  } else {
+    list.innerHTML=all.map(r=>{
+      // 3-row heatmap: Body / Mind / Image (one cell per stage)
+      const axes3=[
+        {key:'body',  icon:'🫧',col:'#44ddcc'},
+        {key:'mind',  icon:'🌫',col:'#b088ff'},
+        {key:'image', icon:'🎇',col:'#f0d080'},
+      ];
+      // Build three rows of 12 cells each
+      const hmRows=axes3.map(ax=>{
+        const cells=r.stages.map(s=>{
+          // Support both new 3-axis format and legacy single-rating
+          const val= (s[ax.key]!==undefined)?s[ax.key]:s.rating||0;
+          const alpha=val?((val/5)*0.55+0.08).toFixed(2):0.04;
+          const border=val?ax.col+'88':'rgba(255,255,255,.1)';
+          const bg=val?ax.col.replace('#','rgba(')+`,${alpha})`
+            .replace('rgba(rgba(','rgba('):'rgba(255,255,255,.04)';
+          const tooltip=`S${s.stage}: ${s.name} · ${ax.key} ${val||'—'}/5`;
+          return `<div class="yn-hm-b"
+            style="background:${val?`${ax.col}${Math.round((val/5*0.55+0.08)*255).toString(16).padStart(2,'0')}`:'rgba(255,255,255,.04)'};
+                   border-color:${border};color:${val?ax.col:'rgba(255,255,255,.18)'}"
+            title="${tooltip}">${val||'·'}</div>`;
+        }).join('');
+        return `<div style="display:flex;align-items:center;gap:2px;margin-bottom:2px">
+          <span style="font-size:.6rem;width:14px;flex-shrink:0">${ax.icon}</span>
+          <div style="flex:1;display:flex;gap:2px">${cells}</div>
+        </div>`;
+      }).join('');
+
+      const avgStr=r.avgRating!=='N/A'?'Composite avg: '+r.avgRating+'/5 · ':'';
+      return`<div class="yn-rc">
+        <div class="yn-rc-top">
+          <div class="yn-rc-title">Day ${r.day} · ${r.duration} min</div>
+          <div class="yn-rc-date">${r.date}</div>
+        </div>
+        <div style="margin-bottom:5px">${hmRows}</div>
+        <div class="yn-rc-meta">${avgStr}${r.ratedCount}/12 stages rated</div>
+        ${r.notes?`<div class="yn-rc-notes">"${r.notes}"</div>`:''}
+      </div>`;
+    }).join('');
+  }
+  $('ynLogModal').classList.add('open');
+}
+// ── End Yoga Nidra ────────────────────────────────────────
+const $=id=>document.getElementById(id);
+function toast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2600);
+}
+function closeModal(id){$(id).classList.remove('open');}
+// ── Boot ──────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  setup();
+  $('micBtn').addEventListener('click',toggleMic);
+  $('btnSave').addEventListener('click',openSave);
+  $('btnView').addEventListener('click',openSessions);
+  $('btnPdf').addEventListener('click',doPDF);
+  $('btnNew').addEventListener('click',doNew);
+  $('confirmSave').addEventListener('click',doSave);
+  $('closeSave').addEventListener('click',()=>closeModal('saveModal'));
+  $('closeSessions').addEventListener('click',()=>closeModal('sessionsModal'));
+  // Mode toggle
+  $('modeMeasure').addEventListener('click',()=>setMode('measure'));
+  $('modeChakra').addEventListener('click',()=>setMode('chakra'));
+  $('modeBrainwave').addEventListener('click',()=>setMode('brainwave'));
+  $('modeNidra').addEventListener('click',()=>setMode('nidra'));
+
+  // Yoga Nidra controls
+  document.querySelectorAll('.nidra-dur-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.nidra-dur-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      nidraTotalSec=parseInt(btn.dataset.min)*60;
+    });
+  });
+  $('nidraStartBtn').addEventListener('click',startNidra);
+  $('nidraStopBtn').addEventListener('click',stopNidra);
+  $('nidraMuteBtn').addEventListener('click',()=>{
+    nidraMuted=!nidraMuted;
+    $('nidraMuteBtn').textContent=nidraMuted?'🔕 Voice Off':'🔔 Voice On';
+    if(nidraMuted) window.speechSynthesis.cancel();
+    toast(nidraMuted?'Voice guidance muted':'Voice guidance on');
+  });
+  $('nidraLogBtn').addEventListener('click',openNidraLog);
+  $('reviewSaveBtn').addEventListener('click',saveNidraReview);
+  $('reviewSkipBtn').addEventListener('click',dismissReview);
+  $('closeYnLog').addEventListener('click',()=>closeModal('ynLogModal'));
+  // Brainwave state buttons
+  document.querySelectorAll('.bwBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.bw;
+      const playing=btn.classList.contains('playing');
+      if(playing){ stopBinaural(); }
+      else{ playBinaural(id); }
+    });
+  });
+  $('bwStop').addEventListener('click',stopBinaural);
+  $('bwVol').addEventListener('input',updateBwVol);
+
+  // ── Carrier frequency controls ─────────────────────────
+  const CARRIER_LABELS={
+    100:'100 Hz (Deep)', 136:'136 Hz (OM)', 200:'200 Hz (Neutral)',
+    432:'432 Hz (Natural A)', 528:'528 Hz (Solfeggio)'
+  };
+
+  function applyCarrier(hz,label){
+    bwCarrierHz=hz;
+    $('carrierActiveDisplay').textContent=(label||hz+' Hz');
+    // Update preset button highlights
+    document.querySelectorAll('.cPresetBtn').forEach(b=>{
+      b.classList.toggle('active',parseInt(b.dataset.carrier)===hz);
+    });
+    // If binaural is currently playing, restart with new carrier
+    if(bwActive&&bwStateData){
+      playBinaural(bwStateData.id);
+      toast('Carrier → '+hz+' Hz · restarting beat');
+    } else {
+      toast('Carrier set to '+hz+' Hz');
+    }
+  }
+
+  document.querySelectorAll('.cPresetBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const hz=parseInt(btn.dataset.carrier);
+      const lbl=hz+' Hz ('+btn.dataset.label+')';
+      $('carrierCustomInput').value='';
+      applyCarrier(hz,lbl);
+    });
+  });
+
+  $('carrierApplyBtn').addEventListener('click',()=>{
+    const val=parseInt($('carrierCustomInput').value);
+    if(!val||val<1){
+      toast('Enter a frequency ≥ 1 Hz');
+      $('carrierCustomInput').focus();
+      return;
+    }
+    // Clear preset highlights — custom value
+    document.querySelectorAll('.cPresetBtn').forEach(b=>b.classList.remove('active'));
+    applyCarrier(val, val+' Hz (Custom)');
+  });
+
+  $('carrierCustomInput').addEventListener('keydown',e=>{
+    if(e.key==='Enter') $('carrierApplyBtn').click();
+  });
+  // Chakra tone buttons
+  document.querySelectorAll('.cBtn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const f=parseInt(btn.dataset.freq);
+      const playing=btn.classList.contains('playing');
+      if(playing){ stopTone(); }
+      else{ playTone(f,btn.dataset.name,btn.dataset.sym); }
+    });
+  });
+  $('toneStop').addEventListener('click',stopTone);
+
+  // Custom frequency
+  const customBtn=$('customFreqBtn');
+  const customInput=$('customFreqInput');
+  function playCustomFreq(){
+    const val=parseFloat(customInput.value);
+    if(!val||val<=0){
+      toast('Enter any frequency above 0 Hz');
+      customInput.focus();
+      return;
+    }
+    if(customBtn.classList.contains('playing')){
+      stopTone(); return;
+    }
+    // Friendly note if outside audible range — still plays visually
+    if(val<20)         toast('⚠ Infrasound — inaudible, visual patterns only');
+    else if(val>20000) toast('⚠ Ultrasound — inaudible, visual patterns only');
+    // Build a label
+    const nearest=LIBRARY.reduce((a,b)=>Math.abs(b.freq-val)<Math.abs(a.freq-val)?b:a);
+    const label=Math.abs(nearest.freq-val)<30?nearest.name:'Custom';
+    playTone(val, label+' ('+Math.round(val)+' Hz)', '~');
+    customBtn.classList.add('playing');
+    customBtn.textContent='■ Stop';
+  }
+  customBtn.addEventListener('click', playCustomFreq);
+  customInput.addEventListener('keydown', e=>{ if(e.key==='Enter') playCustomFreq(); });
+  // Reset custom button when tone stops via other means
+  const _origStopTone=stopTone;
+  stopTone=function(updateUI=true){
+    _origStopTone(updateUI);
+    if(updateUI){
+      customBtn.classList.remove('playing');
+      customBtn.textContent='▶ Play';
+    }
+  };
+  $('toneVol').addEventListener('input',updateToneVol);
+  document.querySelectorAll('.modal-overlay').forEach(el=>
+    el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');})
+  );
+  // ── Frequency Trajectory Logger ─────────────────────────
+  // Circular buffer: 100ms samples, rolling 10s window = 100 slots
+  // Each slot: {t, freq, purity, mantra}
+  const FLOG_MAX=600;         // 60s max recording at 100ms
+  const FLOG_INTERVAL=100;    // ms between samples
+  let flogBuf=[];             // full recording buffer
+  let flogTimer=null;
+  let flogSessionStart=0;
+  const flogCtx=$('freqSparkline').getContext('2d');
+
+  function flogSample(){
+    if(!isListening||curFreq<50) return;
+    flogBuf.push({
+      t:Date.now()-flogSessionStart,
+      freq:curFreq,
+      purity:curPurity,
+      mantra:curMantra
+    });
+    if(flogBuf.length>FLOG_MAX) flogBuf.shift();
+    flogRender();
+  }
+
+  function flogRender(){
+    const canvas=$('freqSparkline');
+    const W=canvas.offsetWidth||300;
+    const H=36;
+    canvas.width=W; canvas.height=H;
+    const ctx=flogCtx;
+    ctx.clearRect(0,0,W,H);
+    if(flogBuf.length<2) return;
+
+    // Show last 100 samples (10s window) in sparkline
+    const view=flogBuf.slice(-100);
+    const freqs=view.map(s=>s.freq);
+    const minF=Math.min(...freqs), maxF=Math.max(...freqs);
+    const range=Math.max(maxF-minF,20); // min 20 Hz range to avoid flat line
+    const midF=(minF+maxF)/2;
+    const dispMin=midF-range*0.6, dispMax=midF+range*0.6;
+
+    // Gradient line coloured by mantra zone
+    ctx.lineWidth=1.5;
+    for(let i=1;i<view.length;i++){
+      const x0=(i-1)/(view.length-1)*W;
+      const x1=i/(view.length-1)*W;
+      const y0=H-(view[i-1].freq-dispMin)/(dispMax-dispMin)*H*0.85-H*0.07;
+      const y1=H-(view[i].freq-dispMin)/(dispMax-dispMin)*H*0.85-H*0.07;
+      const alpha=0.4+view[i].purity/100*0.5;
+      ctx.beginPath();
+      ctx.moveTo(x0,y0); ctx.lineTo(x1,y1);
+      ctx.strokeStyle=`rgba(68,221,204,${alpha})`;
+      ctx.stroke();
+    }
+
+    // Min/max labels
+    ctx.fillStyle='rgba(255,255,255,.3)';
+    ctx.font='9px monospace';
+    ctx.fillText(Math.round(maxF)+' Hz',2,10);
+    ctx.fillText(Math.round(minF)+' Hz',2,H-2);
+
+    // Stats
+    const dur=((flogBuf[flogBuf.length-1].t)/1000).toFixed(1);
+    const avgF=Math.round(flogBuf.reduce((s,x)=>s+x.freq,0)/flogBuf.length);
+    $('flogStats').textContent=`${dur}s · avg ${avgF} Hz · ${flogBuf.length} pts`;
+  }
+
+  function flogStart(){
+    flogBuf=[];
+    flogSessionStart=Date.now();
+    flogTimer=setInterval(flogSample, FLOG_INTERVAL);
+    $('freqLogger').classList.add('visible');
+  }
+
+  function flogStop(){
+    clearInterval(flogTimer); flogTimer=null;
+    // keep panel visible with last data until manually cleared
+  }
+
+  function flogExportCSV(){
+    if(!flogBuf.length){toast('No data to export');return;}
+    const lines=['time_ms,freq_hz,purity_pct,mantra'];
+    flogBuf.forEach(s=>lines.push(`${s.t},${s.freq},${s.purity},${s.mantra}`));
+    const blob=new Blob([lines.join('\n')],{type:'text/csv'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const ts=new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+    a.href=url; a.download=`cymatics-freq-${ts}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast('CSV downloaded — '+flogBuf.length+' samples');
+  }
+
+  function flogClear(){
+    flogBuf=[];
+    flogSessionStart=Date.now();
+    const canvas=$('freqSparkline');
+    flogCtx.clearRect(0,0,canvas.width,canvas.height);
+    $('flogStats').textContent='—';
+    if(!isListening) $('freqLogger').classList.remove('visible');
+    toast('Trajectory cleared');
+  }
+
+  $('flogExport').addEventListener('click',flogExportCSV);
+  $('flogClear').addEventListener('click',flogClear);
+
+  initShake();
+  // ── PWA Service Worker ───────────────────────────────────
+  if('serviceWorker' in navigator && location.protocol==='https:'){
+    navigator.serviceWorker.register('sw.js')
+      .then(reg=>{
+        // Check for waiting worker (new version ready) and activate immediately
+        reg.addEventListener('updatefound',()=>{
+          const nw=reg.installing;
+          nw.addEventListener('statechange',()=>{
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              // New version cached — reload to apply
+              toast('App updated — reloading...');
+              setTimeout(()=>location.reload(),1800);
+            }
+          });
+        });
+      })
+      .catch(e=>console.warn('SW:',e));
+    // Tell SW to skip waiting if it's already waiting
+    navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
+  }
+});
+</script>
+</body>
 </html>
