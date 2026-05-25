@@ -2,7 +2,7 @@
   "name": "CymaticaMandala",
   "short_name": "Cymatica",
   "description": "Sound · Geometry · Healing — Cymatic mandala visualizer",
-  "start_url": ".CymaticaMandala.html",
+  "start_url": "./CymaticaMandala.html",
   "display": "standalone",
   "background_color": "#050810",
   "theme_color": "#050810",
