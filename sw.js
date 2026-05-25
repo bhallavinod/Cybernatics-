@@ -1,5 +1,5 @@
 const CACHE = 'cymatics-v1';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png',"."];
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png';
 
 self.addEventListener('install', e => {
   e.waitUntil(
